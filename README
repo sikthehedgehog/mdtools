@@ -1,0 +1,22 @@
+-----------------------------------------------------------------------------
+ _________ ____  _____ _____ _____ _     _____
+|  _   _  |  _ \|_   _|  _  |  _  | |   |  ___|
+| | | | | | | | | | | | | | | | | | |   | |___
+| | | | | | | | | | | | | | | | | | |   |___  |
+| | |_| | | |_| | | | | |_| | |_| | |___ ___| |
+|_|     |_|____/  |_| |_____|_____|_____|_____|
+
+This repository contains a collection of several free tools designed to aid
+in development of Mega Drive homebrew. The objective is to make it easier to
+build better quality homebrew as well as to provide a standard set of tools.
+
+Excuse the fact there isn't much here for the moment. We hope we can add many
+more useful tools later :O)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Tools currently available:
+
+   - SLZ (general purpose compression)
+
+-----------------------------------------------------------------------------
