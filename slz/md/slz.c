@@ -5,8 +5,8 @@
 // decompress_slz
 // Decompresses data stored in SLZ format
 //---------------------------------------------------------------------------
-// param dest: where to store decompressed data
-// param src: pointer to SLZ-compressed data
+// param out: where to store decompressed data
+// param in: pointer to SLZ-compressed data
 //***************************************************************************
 
 void decompress_slz(uint8_t *out, const uint8_t *in) {
