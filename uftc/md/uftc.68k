@@ -1,0 +1,60 @@
+;****************************************************************************
+; DecompressUftc
+; Decompresses UFTC data
+;----------------------------------------------------------------------------
+; input a6.l ... Pointer to UFTC data
+; input a5.l ... Pointer to output buffer
+; input d7.w ... ID of first tile to decompress (counting from 0)
+; input d6.w ... How many tiles to decompress
+; breaks: d5, d6, d7, a4, a5, a6
+;****************************************************************************
+
+DecompressUftc:
+    move.l  a2, -(sp)                   ; Save registers
+    move.l  a3, -(sp)
+    
+    move.w  (a6)+, d5                   ; Get size of dictionary
+    
+    lea     (a6,d5.w), a4               ; Get address of data with first tile
+    and.l   #$FFFF, d7                    ; to be decompressed (using a dword
+    lsl.l   #3, d7                        ; so we can have over 4096 tiles)
+    adda.l  d7, a4
+    
+    bra.s   @LoopEnd                    ; Start decompressing
+
+@Loop:
+    move.w  (a4)+, d5                   ; Fetch addresses of dictionary
+    lea     (a6,d5.w), a3                 ; entries for the first two 4x4
+    move.w  (a4)+, d5                     ; blocks of this tile
+    lea     (a6,d5.w), a2
+    
+    move.w  (a3)+, (a5)+                ; Decompress first pair of 4x4 blocks
+    move.w  (a2)+, (a5)+                  ; into the output buffer
+    move.w  (a3)+, (a5)+
+    move.w  (a2)+, (a5)+
+    move.w  (a3)+, (a5)+
+    move.w  (a2)+, (a5)+
+    move.w  (a3)+, (a5)+
+    move.w  (a2)+, (a5)+
+    
+    move.w  (a4)+, d5                   ; Fetch addresses of dictionary
+    lea     (a6,d5.w), a3                 ; entries for the last two 4x4
+    move.w  (a4)+, d5                     ; blocks of this tile
+    lea     (a6,d5.w), a2
+    
+    move.w  (a3)+, (a5)+                ; Decompress last pair of 4x4 blocks
+    move.w  (a2)+, (a5)+                  ; into the output buffer
+    move.w  (a3)+, (a5)+
+    move.w  (a2)+, (a5)+
+    move.w  (a3)+, (a5)+
+    move.w  (a2)+, (a5)+
+    move.w  (a3)+, (a5)+
+    move.w  (a2)+, (a5)+
+    
+@LoopEnd:
+    dbf     d6, @Loop                   ; Go for next tile
+    
+    move.l  (sp)+, a3                   ; Restore registers
+    move.l  (sp)+, a2
+    rts                                 ; End of subroutine
+
