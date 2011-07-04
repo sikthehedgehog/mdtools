@@ -96,11 +96,8 @@ is as follows:
 
    decompress_slz(uint8_t *output, const uint8_t *input)
 
-Where «input» is the address of SLZ compressed data, and «output» is where
-you want the decompressed data to be stored. It can output to either 68000
-RAM or Z80 RAM.
-
-Make sure to include "slz.h" wherever you call this function.
+Parameters are the same as for its assembly counterpart (see above). Make
+sure to include "slz.h" wherever you call this function.
 
 You'll probably want to turn on full optimization (e.g. -O3 in GCC) when
 compiling this function. Otherwise decompression is going to be very slow.
