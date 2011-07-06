@@ -140,9 +140,13 @@ int main(int argc, char **argv) {
    if (action == ACTION_DEFAULT)
       action = ACTION_COMPRESS;
 
+   // No format specified?
+   if (format == FORMAT_DEFAULT)
+      format = FORMAT_SLZ16;
+
    // Show tool version?
    if (show_ver) {
-      puts("1.1");
+      puts("1.1b");
       return EXIT_SUCCESS;
    }
 
