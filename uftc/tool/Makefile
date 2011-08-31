@@ -1,9 +1,9 @@
 CFLAGS=-Wall -O3 -s
 
 .PHONY: all
-all: slz
+all: uftc
 
-slz: main.o compress.o decompress.o
+uftc: main.o compress.o decompress.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 main.o: main.c main.h compress.h decompress.h
@@ -12,8 +12,8 @@ decompress.o: decompress.c main.h
 
 .PHONY: clean
 clean:
-	rm -rf slz
-	rm -rf *.o
+	-rm -rf uftc
+	-rm -rf *.o
 
 .PHONY: love
 love:
