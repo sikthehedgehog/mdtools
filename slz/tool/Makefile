@@ -12,8 +12,8 @@ decompress.o: decompress.c main.h
 
 .PHONY: clean
 clean:
-	rm -rf slz
-	rm -rf *.o
+	-rm -rf slz
+	-rm -rf *.o
 
 .PHONY: love
 love:
