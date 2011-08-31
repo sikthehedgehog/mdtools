@@ -17,7 +17,7 @@ more useful tools later :O)
 
 Tools currently available:
 
-   - SLZ (general purpose compression)
-   - UFTC (fast graphics compression)
+   - slz (general purpose compression)
+   - uftc (fast graphics compression)
 
 -----------------------------------------------------------------------------

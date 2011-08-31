@@ -1,0 +1,110 @@
+-----------------------------------------------------------------------------
+ _____ _     _____
+|  ___| |   |___  |
+| |___| |      / /
+|___  | |     / /
+ ___| | |___ / /__
+|_____|_____|_____|
+
+Copyright 2011 Javier Degirolmo (Sik)
+sik dot the dot hedgehog at gmail dot com
+
+SLZ is a LZ77-based compression format for Mega Drive homebrew. It serves as
+a good general purpose compression scheme, mainly useful for data that needs
+to be used during loading times.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Provided in this package:
+
+   * Compression tool source code
+   * 68k asm decompression source code for Mega Drive
+   * C decompression source code for Mega Drive
+
+The source code for the tool is licensed under the GPL version 3 or later
+(see tool/LICENSE.txt). The source code for use in Mega Drive is under a
+permissive license (do whatever you want with it as long as you don't claim
+it as your own - no explicit credit needed however).
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+SLZ stands for "sleazy" and the name was suggested by both TµEE and AamirM.
+
+-----------------------------------------------------------------------------
+
+There's a command line tool that can be used to compress or decompress data.
+You can build this tool by using the makefile or just compiling together all
+the C files. This tool is licensed under the GPL version 3 or later.
+
+To compress a file:
+
+   slz -c «infile» «outfile»
+
+To decompress a file:
+
+   slz -d «infile» «outfile»
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+By default, the SLZ tool will generate SLZ16 files (the standard format),
+which have a limit of 65,536 bytes (~64KB) for the uncompressed data. If you
+need to compress more than that, you should use the SLZ24 format instead.
+Beware that you'll need to use different functions in your Mega Drive code
+for SLZ24!
+
+To compress a file (SLZ24):
+
+   slz -c -24 «infile» «outfile»
+
+To decompress a file (SLZ24):
+
+   slz -d -24 «infile» «outfile»
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+It's suggested to use the ".slz" extension to denote SLZ-compressed files
+(e.g. "example.slz").
+
+-----------------------------------------------------------------------------
+
+A 68000 assembly routine is provided (md/slz.68k) that can be used to
+decompress SLZ data from assembly code. To do this, you should do the
+following:
+
+   lea (input), a6         ; Input address goes into a6
+   lea (output), a5        ; Output address goes into a5
+   bsr DecompressSlz       ; Call subroutine
+
+Where «input» is the address of SLZ compressed data, and «output» is where
+you want the decompressed data to be stored. It can output to either 68000
+RAM or Z80 RAM.
+
+The contents of registers d5 to d7 are clobbered after calling this
+subroutine. The values of registers a5 and a6 will be right after the end of
+their data, which may be used for optimization purposes.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+If you need to decompress SLZ24 data, use DecompressSlz24 (md/slz24.68k)
+instead.
+
+-----------------------------------------------------------------------------
+
+Also a C function is provided (md/slz.c and md/slz.h) that can be called from
+C code in the Mega Drive to decompress SLZ data. The usage of this function
+is as follows:
+
+   decompress_slz(uint8_t *output, const uint8_t *input)
+
+Parameters are the same as for its assembly counterpart (see above). Make
+sure to include "slz.h" wherever you call this function.
+
+You'll probably want to turn on full optimization (e.g. -O3 in GCC) when
+compiling this function. Otherwise decompression is going to be very slow.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+If you need to decompress SLZ24 data, use decompress_slz24 (md/slz24.c)
+instead. The header file is still "slz.h", though.
+
+-----------------------------------------------------------------------------
