@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.0");
+      puts("1.1");
       return EXIT_SUCCESS;
    }
 
@@ -208,6 +208,7 @@ int main(int argc, char **argv) {
    // Quit program
    fclose(outfile);
    fclose(infile);
+   if (errcode) remove(outfilename);
    return errcode ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
