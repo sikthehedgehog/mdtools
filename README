@@ -19,5 +19,6 @@ Tools currently available:
 
    - slz (general purpose compression)
    - uftc (fast graphics compression)
+   - tfi2eif (converts TFM Maker instruments into Echo FM instruments)
 
 -----------------------------------------------------------------------------

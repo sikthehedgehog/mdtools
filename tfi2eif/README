@@ -1,0 +1,48 @@
+-----------------------------------------------------------------------------
+ _____ _____ _ ____  _____ _____ _____
+|_   _|  ___| |___ \|  ___|  ___|  ___|
+  | | | |__ | | __| | |__ | |___| |__
+  | | |  __|| |/ __/|  __||___  |  __|
+  | | | |   | | |___| |___ ___| | |
+  |_| |_|   |_|_____|_____|_____|_|
+
+by Javier Degirolmo (Sik)
+sik dot the dot hedgehog at gmail dot com
+
+TFI2EIF is a quick tool for converting TFM Maker instruments into FM
+instruments for use by the Echo sound engine.
+
+You can find more about the Echo sound engine at this address:
+https://github.com/sikthehedgehog/Echo
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Provided in this package:
+
+   * Tool source code
+   * TFI format documentation
+   * EIF format documentation
+
+The source code for the tool is licensed under the GPL version 3 or later
+(see tool/LICENSE.txt). Format documentation is provided under public domain
+and I don't care what you do with it.
+
+-----------------------------------------------------------------------------
+
+This is a command line tool. It takes an instrument generated in TFM Maker
+(".tfi" extension) and outputs a FM instrument in the format used by the Echo
+sound engine (usually ".eif" extension).
+
+You can build this tool by using the makefile or just compiling together all
+the C files. This tool is licensed under the GPL version 3 or later.
+
+To convert a TFI file into EIF:
+
+   tfi2eif «infile» «outfile»
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+It's suggested to use the ".eif" extension for Echo FM instruments (e.g.
+"example.eif").
+
+-----------------------------------------------------------------------------
