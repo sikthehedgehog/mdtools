@@ -1,0 +1,14 @@
+ _____ _       _ _____
+|  ___| |  _  | |  ___|
+| |__ | | | | | | |__
+|  __|| | | | | |  __|
+| |___| |_| |_| | |
+|_____|____.____|_|
+
+EWF stands for "Echo Waveform Format" and it's the format in which Echo
+expects the PCM instruments.
+
+EWF data is essentially raw headerless PCM data, stored as unsigned 8-bit
+mono at 16050 Hz. Sample values range from $00 to $FE. The end of the
+waveform is marked by a byte with value $FF, which is why you need to use
+pcm2ewf on raw PCM files (it'll ensure the waveform complies with the above).

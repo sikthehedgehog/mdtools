@@ -1,0 +1,43 @@
+-----------------------------------------------------------------------------
+ _____ _____ ____ ____ ____  _____ _       _ _____
+|  _  |  _  |  _ ' _  |___ \|  ___| |  _  | |  ___|
+| |_| | | |_| | | | | | __| | |__ | | | | | | |__
+|  ___| |  _| | | | | |/ __/|  __|| | | | | |  __|
+| |   | |_| | | |_| | | |___| |___| |_| |_| | |
+|_|   |_____|_|     |_|_____|_____|____.____|_|
+
+by Javier Degirolmo (Sik)
+sik dot the dot hedgehog at gmail dot com
+
+PCM2EWF is a quick tool for converting raw PCM waveforms into Echo PCM
+instruments (EWF).
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Provided in this package:
+
+   * Tool source code
+   * EWF format documentation
+
+The source code for the tool is licensed under the GPL version 3 or later
+(see tool/LICENSE.txt).
+
+-----------------------------------------------------------------------------
+
+This is a command line tool. It takes a raw PCM file (headerless) and outputs
+a PCM instrument in the format used by the Echo sound engine (usually ".ewf"
+extension). The raw PCM file should be unsigned 8-bit mono 16050 Hz.
+
+You can build this tool by using the makefile or just compiling together all
+the C files. This tool is licensed under the GPL version 3 or later.
+
+To convert a PCM file into EWF:
+
+   pcm2ewf «infile» «outfile»
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+It's suggested to use the ".ewf" extension for Echo PCM instruments (e.g.
+"example.ewf").
+
+-----------------------------------------------------------------------------
