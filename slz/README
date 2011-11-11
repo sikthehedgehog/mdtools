@@ -22,7 +22,7 @@ Provided in this package:
    * C decompression source code for Mega Drive
 
 The source code for the tool is licensed under the GPL version 3 or later
-(see tool/LICENSE.txt). The source code for use in Mega Drive is under a
+(see tool/LICENSE). The source code for use in Mega Drive is under a
 permissive license (do whatever you want with it as long as you don't claim
 it as your own - no explicit credit needed however).
 
