@@ -17,6 +17,9 @@ more useful tools later :O)
 
 Tools currently available:
 
+   * Programming tools
+      - headgen (generates Mega Drive headers)
+
    * Graphics tools
       - mdtiler (converts PNG files into Mega Drive tiles)
 

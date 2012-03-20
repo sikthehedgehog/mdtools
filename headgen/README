@@ -1,0 +1,61 @@
+-----------------------------------------------------------------------------
+ _   _ _____ _____ ____  _____ _____ _____
+| | | |  ___|  _  |  _ \|  ___|  ___|  _  |
+| |_| | |__ | |_| | | | | |___| |__ | | | |
+|  _  |  __||  _  | | | | |_  |  __|| | | |
+| | | | |___| | | | |_| | |_| | |___| | | |
+|_| |_|_____|_| |_|____/|_____|_____|_| |_|
+
+Copyright 2012 Javier Degirolmo (Sik)
+sik dot the dot hedgehog at gmail dot com
+
+This is a quick tool for generating headers for Mega Drive games. You can use
+this tool to make a header for your game if you don't feel like making it
+manually. It will output assembly code you can then use in your game.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Provided in this package:
+
+   * Tool source code
+   * Header format documentation
+
+The source code for the tool is licensed under the GPL version 3 or later
+(see tool/LICENSE).
+
+-----------------------------------------------------------------------------
+
+This is a command line tool. You'd call it as follows:
+
+   headgen «outfile» -t "«game title»" -c "«copyright code»"
+
+For example:
+
+   headgen header.68k -t "SONIC THE HEDGEHOG" -c "SEGA"
+
+If you don't specify an output file, the header will be written to stdout
+instead (e.g. the console).
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+You can provide some more options to specify support for different features:
+
+   -6 or --6pad
+     Specify this if the game supports the 6 button controller. Note that
+     this means that any of the extra buttons (X, Y, Z or Mode) is used at
+     least somewhere, don't specify this if they aren't used at all.
+     
+   -m or --mouse
+     Specify this if the game supports the Mega Mouse.
+   
+   -cd or --megacd
+     Specify this if the game supports Mega CD hardware somehow. Commonly
+     found on cartridge software that can read CDs.
+   
+   -s or --sram
+     Specify this if the game has SRAM for savegames. Note that this tool
+     will generate information for the standard SRAM setup ($200001..$20FFFF,
+     odd addresses only, battery back-up), if your game uses a custom setup
+     you should edit the header manually instead.
+
+-----------------------------------------------------------------------------

@@ -1,0 +1,257 @@
+-----------------------------------------------------------------------------
+ _____ _____ _____ _____ ____  _____ _ _   _ _____
+|     |  ___|  ___|  _  |  _ \|  _  | | | | |  ___|
+| | | |  ___| |_  |  _  | |_| |  _ <| | |_| |  ___|
+|_|_|_|_____|_____|_| |_|____/|_| |_|_|\___/|_____|
+ _   _ _____ _____ ____  _____ _____
+| |_| |  ___|  _  |  _ \|  ___|  _  |
+|  _  |  ___|  _  | |_| |  ___|  _ <
+|_| |_|_____|_| |_|____/|_____|_| |_|
+
+This document describes the format of the Mega Drive header. This header is
+located between addresses $100 and $1FF in the ROM (inclusive), right after
+the 68000 vectors. It provides information about the game and what features
+it supports.
+
+The TMSS header checks that the beginning of the header is correct before
+letting the game boot. Otherwise, the header is completely ignored by the
+system. Some software pays attention to the header though, so it would be a
+good idea to ensure all homebrew games have a correct header. It also makes
+documentation and archival work much easier.
+
+Numbers starting with $ are in hexadecimal. Numbers starting with % are in
+binary. Numbers without a prefix are in decimal. Anything between quotes is
+an ASCII string (even numbers within quotes are ASCII strings).
+
+-----------------------------------------------------------------------------
+
+*** HEADER STRUCTURE ***
+
+   Addr | Size | Description
+   -----+------+-----------------------------
+   $100 | 16   | Header identifier
+   $110 | 16   | Copyright information
+   $120 | 48   | Game title (domestic)
+   $150 | 48   | Game title (overseas)
+   $180 | 14   | Serial number
+   $18E | 2    | Checksum
+   $190 | 16   | Device support
+   $1A0 | 8    | ROM start and end address
+   $1A8 | 8    | RAM start and end address
+   $1B0 | 12   | External memory information
+   $1BC | 12   | Modem support
+   $1C8 | 40   | (reserved, fill with spaces)
+   $1F0 | 3    | Region support
+   $1F3 | 13   | (reserved, fill with spaces)
+
+-----------------------------------------------------------------------------
+
+*** HEADER IDENTIFIER ***
+
+A string that identifies the system. It must be either "SEGA MEGA DRIVE" or
+"SEGA GENESIS" (padded with spaces). The TMSS firmware checks that it starts
+with "SEGA".
+
+Homebrew extension: "SEGA EVERDRIVE" is used for software that supports
+EverDrive-specific hardware. If this string is used, then the EverDrive
+hardware won't be masked out. Use this if you plan to access the SD card or
+something like that.
+
+Other systems: the Picture Magic firmware has "Picture Magic" in this region.
+Pico games have "SEGA PICO" in this field.
+
+-----------------------------------------------------------------------------
+
+*** COPYRIGHT INFORMATION ***
+
+A string with the following format: "(C)xxxx yyyy.zzz", where 'xxxx' is a
+four-character copyright code identifying the publisher, 'yyyy' is the
+release year (four digits) and 'zzz' is a three-character abreviation with
+the release month.
+
+The following are the abbreviations for the months:
+
+   Abbr. | Month      Abbr. | Month
+   ------+---------   ------+----------
+   "JAN" | January    "JUL" | July
+   "FEB" | February   "AUG" | August
+   "MAR" | March      "SEP" | September
+   "APR" | April      "OCT" | October
+   "MAY" | May        "NOV" | November
+   "JUN" | June       "DEC" | December
+
+Caveat: some games use "APL" instead of "APR" for April.
+
+-----------------------------------------------------------------------------
+
+*** GAME TITLE ***
+
+Self-descriptive, the game title goes here. Up to 48 bytes, must be padded
+with spaces. The title may be stored in either ASCII or Shift-JIS.
+
+There are two regions for the game title. The first one is for the name of
+the game in its country of origin, while the second one is for the name of
+the game internationally.
+
+-----------------------------------------------------------------------------
+
+*** SERIAL NUMBER ***
+
+A string with the format "xx yyyyyyyy-zz", where 'xx' is a two character code
+specifying what kind of software it is, 'yyyyyyyy' was some sort of serial
+number assigned to each ROM by Sega and 'zz' is the version of the game ("00"
+for the first release, "01" for the second release, etc.).
+
+The known two character codes are:
+
+   Code | Software type
+   -----+-----------------
+   "GM" | Game
+   "AI" | Educational aid
+   "OS" | TMSS firmware
+   "BR" | Mega CD boot ROM
+
+As such, homebrew games would usually carry the "GM" type.
+
+As of time of writing there is no entity to assign serial numbers for
+homebrew games. You may want to fill that with "XXXXXXXX" or "????????"
+meanwhile.
+
+-----------------------------------------------------------------------------
+
+*** CHECKSUM ***
+
+A checksum of the ROM. It's up to the game to check if the checksum is valid,
+as well as what algorithm to use. Normally you wouldn't bother with this.
+
+Sega provided a standard checksum algorithm that was used for most licensed
+games. This algorithm consisted in simply adding all 16-bit words from
+address $200 to the end of the ROM.
+
+-----------------------------------------------------------------------------
+
+*** DEVICE SUPPORT ***
+
+A string where each character represents a device supported by the software.
+This string is padded with spaces. The following characters can be used for
+each supported device/feature:
+
+   ID  | Device                ID  | Device
+   ----+--------------------   ----+----------------------
+   "A" | Analog joystick       "M" | Mouse
+   "B" | Trackball             "P" | Printer
+   "C" | CD-ROM (Mega CD)      "R" | RS-232 device (modem)
+   "D" | ???                   "T" | Tablet
+   "F" | Floppy drive          "V" | Paddle controller
+   "G" | Lightgun (Menacer)    "0" | SMS controller
+   "J" | 3 button controller   "3" | ???
+   "K" | Keyboard or keypad    "4" | 4-way multitap
+   "L" | Activator             "6" | 6 button controller
+
+Homebrew games should at the very least support the 3 button controller. It's
+the standard input device, and games that don't support it are not cool!
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   What "D" means is unknown. I found only two software using that so
+   far: Game Toshokan and Rambo III. Going by Game Toshokan, I'd say it
+   stands for downloadable games... but then what's the deal with Rambo
+   III? o_O
+   
+   In a similar vein, "3" is used by Ragnacenty. No idea what it is, but
+   maybe the developers put it there thinking it meant support for the 3
+   button controller (which is what "J" means... and is also listed in
+   its header, for the record).
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+-----------------------------------------------------------------------------
+
+*** ROM START AND END ADDRESS ***
+
+Two 32-bit values indicating the start and end address of the ROM area,
+respectively. The first value is always $000000, while the second value
+should be the address of the last byte in the ROM.
+
+Some common values for the ending address for different ROM sizes:
+
+   ROM size | Address
+   ---------+--------
+   128KB    | $01FFFF
+   256KB    | $03FFFF
+   512KB    | $07FFFF
+   1MB      | $0FFFFF
+   2MB      | $1FFFFF
+   4MB      | $3FFFFF
+
+Note that if the game uses a mapper, these fields should consider the address
+range covered by the ROM, not the total size of the ROM! (so e.g. if the ROM
+is mapped down to 4MB, the ending address would be $3FFFFF).
+
+-----------------------------------------------------------------------------
+
+*** RAM START AND END ADDRESS ***
+
+Same as above, but for RAM. Always $FF0000 and $FFFFFF for Mega Drive games.
+
+Other systems: Picture Magic has its RAM from $E00000 to $E7FFFF (which is
+8 times the RAM on a Mega Drive), according to its firmware's header.
+
+-----------------------------------------------------------------------------
+
+*** EXTERNAL MEMORY INFORMATION ***
+
+If the game has extra memory in the cartridge (e.g. to store savegames), that
+information goes here. The first two bytes are "RA", then comes a byte
+describing how this memory can be used, then a byte with value $20 (a space).
+
+The byte describing how the memory can be used has the format %1x1yz000,
+where 'x' is 1 if the memory is non-volatile (i.e. doesn't get erased on
+power off) or 0 if it's volatile (like standard RAM). The bits 'y' and 'z'
+can have the following values:
+
+   y | z | Access type
+   --+---+-----------------------
+   0 | 0 | Even and odd addresses
+   1 | 0 | Even addresses only
+   1 | 1 | Odd addresses only
+
+After that there are two 32-bit values, indicating where the external memory
+starts and where it ends, respectively (just like with the previous fields).
+
+If the game doesn't have any extra memory on it, just fill with spaces.
+
+-----------------------------------------------------------------------------
+
+*** MODEM INFORMATION ***
+
+A string with information about which modem is supported. This string has
+the format "MOxxxxyy.zzz", where 'xxxx' is the same four character code as in
+the copyright information, and 'yy.zzz' is the version.
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Does anybody know what the version means? Each game seems to have a
+   completely different value here, and the official documentation says
+   "modem number" and "version", but doesn't give any more details.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+If no modem is supported, this field should be filled with spaces.
+
+-----------------------------------------------------------------------------
+
+*** REGION SUPPORT ***
+
+A string indicating which regions are supported by the game. Each character
+indicates a region. If not all regions are supported, pad with spaces. It's
+up to the game to implement region lock-out.
+
+The available regions are:
+
+   ID  | Region  | System
+   ----+---------+----------------
+   "J" | Asia    | NTSC + domestic
+   "U" | America | NTSC + overseas
+   "E" | Europe  | PAL + overseas
+
+If there is no region lock-out, you'd use "JUE". Homebrew games with region
+lock-out are frowned upon, so you may not want to attempt that!
+
+-----------------------------------------------------------------------------
