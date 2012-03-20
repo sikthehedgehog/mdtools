@@ -1,0 +1,130 @@
+ ____ ____ ____  _____ _ _     _____ _____
+|  _ ' _  |  _ \|_   _| | |   |  ___|  _  |
+| | | | | | | | | | | | | |   | |__ | |_| |
+| | | | | | | | | | | | | |   |  __||    _|
+| | | | | | |_| | | | | | |___| |___| |\ \
+|_| |_| |_|____/  |_| |_|_____|_____|_| \_\
+
+mdtiler version 1.1
+©2011,2012 Sik the hedgehog
+
+mdtiler is a command line tool to convert images into tiles that can be used
+in Mega Drive software. It provides a quick build mode that will just convert
+an entire bitmap into tiles and an advanced batch build mode that lets you
+specify what tiles to convert, in what order and even lets you use multiple
+files.
+
+mdtiler is released under the GPL version 3 or later. Check the file LICENSE
+for more details, or check http://www.gnu.org/licenses/gpl-3.0.txt
+
+In order to build the current version of mdtiler you will need the following
+libraries:
+
+   - Picel (https://github.com/sikthehedgehog/Picel)
+   - libpng
+   - zlib
+
+-----------------------------------------------------------------------------
+
+Quick build is the simplest way to use mdtiler, but also it's really limited.
+It takes a bitmap and converts all of it into tiles. To use this mode, you
+need to use the -t or -s switches, depending in what order you want the tiles
+to be stored.
+
+To output tiles in the same order as tilemaps (left to right, then top to
+bottom), call mdtiler as follows:
+
+   mdtiler -t «in-file» «out-file»
+
+To output tiles in the same order as sprites (top to bottom, then left to
+right), call mdtiler as follows:
+
+   mdtiler -s «in-file» «out-file»
+
+It's also possible to specify the -1 switch to output 1bpp tiles instead of
+4bpp tiles.
+
+-----------------------------------------------------------------------------
+
+Batch build is more complex but also provides the most flexibility. It lets
+you process multiple images at the same time, and also lets you choose which
+tiles to output and in which order. This is specially useful for sprite
+mappings, and for compression since you can output multiple graphics as a
+single blob file if you want. You will need to provide a "batch file"
+(essentially a text file, see below) that tells mdtiler what to do.
+
+To use batch build, call mdtiler as follows:
+
+   mdtiler -b «batch-file»
+
+Batch files consist of multiple commands, each command being in its own line
+(blank lines are ignored), parsed from top to bottom, in order (i.e. settings
+only apply to commands below them, not the ones above them).
+
+If a # is found when the parser expects a token, it starts a comment and
+everything in the line after that point is ignored. You can use this to
+document what's going on.
+
+The available commands are as follows (where «» specify parameters):
+
+   input «filename»
+   
+      Specify input file. All following tiles will be read from this image.
+      You need to specify an input file before you can output tiles.
+      
+      You must enclose the filename inside quotes if it has spaces (e.g.
+      "this name has spaces"). Quotes are optional if there aren't spaces
+      (e.g. thisisaname or "thisisaname").
+   
+   output «filename»
+   
+      Specify output file. All following tiles will be written to this file.
+      You need to specify an output file before you can output tiles.
+      
+      You must enclose the filename inside quotes if it has spaces (e.g.
+      "this name has spaces"). Quotes are optional if there aren't spaces
+      (e.g. thisisaname or "thisisaname").
+   
+   tiles «x» «y» «width» «height»
+   
+      Reads a block of tiles from the input image and converts them into the
+      output file. The parameters «x» and «y» specify the coordinates of the
+      top-left corner, while the parameters «width» and «height» specify the
+      dimensions of the block. They're always measured in tiles.
+      
+      If you just want to read individual tiles, you can just pass 1 as
+      both width and height.
+   
+   layout tilemap
+   
+      Since now on, all groups of tiles will be output following tilemap
+      ordering (i.e. left-to-right, then top-to-bottom). This is the default
+      setting.
+   
+   layout sprite
+   
+      Since now on, all groups of tiles will be output following sprite
+      ordering (i.e. same order used for sprites in the Mega Drive).
+   
+   format 4bpp
+   
+      All following tiles will be output in 4BPP format (4 bits per pixel,
+      same as Mega Drive hardware). This is the default setting.
+   
+   format 1bpp
+   
+      All following tiles will be output in 1BPP format (1 bit per pixel).
+
+-----------------------------------------------------------------------------
+
+List of all switches:
+
+   -b or --batch ..... Batch build
+   -t or --tilemap ... Quick build (tilemap ordering)
+   -s or --sprite .... Quick build (sprite ordering)
+   
+   -4 or --4bpp ...... Output 4bpp tiles in quick build (default)
+   -1 or --1bpp ...... Output 1bpp tiles in quick build
+   
+   -h or --help ...... Print program usage to stdout
+   -v or --version ... Print program version to stdout
