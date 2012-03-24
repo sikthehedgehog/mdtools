@@ -1,0 +1,44 @@
+-----------------------------------------------------------------------------
+ _   _ _____ _ ____  _____ _____ _____
+| | | |  ___| |___ \|  ___|  ___|  ___|
+| | | | |___| | __| | |__ | |___| |__
+| | | | |_  | |/ __/|  __||___  |  __|
+ \ V /| |_| | | |___| |___ ___| | |
+  \_/ |_____|_|_____|_____|_____|_|
+
+by Javier Degirolmo (Sik)
+sik dot the dot hedgehog at gmail dot com
+
+VGI2EIF is a quick tool for converting VGM Maker instruments into FM
+instruments for use by Echo.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Provided in this package:
+
+   * Tool source code
+   * VGI format documentation
+   * EIF format documentation
+
+The source code for the tool is licensed under the GPL version 3 or later
+(see tool/LICENSE).
+
+-----------------------------------------------------------------------------
+
+This is a command line tool. It takes an instrument generated in VGM Maker
+(".vgi" extension) and outputs a FM instrument in the format used by the Echo
+sound engine (usually ".eif" extension).
+
+You can build this tool by using the makefile or just compiling together all
+the C files. This tool is licensed under the GPL version 3 or later.
+
+To convert a VGI file into EIF:
+
+   vgi2eif «infile» «outfile»
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+It's suggested to use the ".eif" extension for Echo FM instruments (e.g.
+"example.eif").
+
+-----------------------------------------------------------------------------

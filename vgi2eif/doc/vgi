@@ -1,0 +1,45 @@
+ _   _ _____ _
+| | | |  ___| |
+| | | | |___| |
+| | | | |_  | |
+ \ V /| |_| | |
+  \_/ |_____|_|
+
+VGI is the format in which VGM Maker instruments are stored.
+
+VGI is a format designed to be easy to parse by editors, rather than by
+hardware. Each VGI file is 43 bytes long, where each byte specifies a
+different parameter. The VGI format is a slight tweak of the TFI format.
+
+The first three bytes are the parameters global to the entire instrument:
+
+   * Algorithm (0..7)
+   * Feedback (0..7)
+   * FMS and AMS
+
+FMS is stored in bits 0..2 (0x00..0x07) of the third byte, while AMS is
+stored in bits 5..4 (0x00/0x10/0x20/0x30). All other bits should remain clear
+(VGM Maker will never set those).
+
+After that, there are four groups of ten bytes each, where each group
+contains the information for a different operator. The data for each group
+is as follows:
+
+   * Multiplier (0..15)
+   * Detune (0..6, see below for details)
+   * Total level (0..127)
+   * Rate scaling (0..3)
+   * Attack rate (0..31)
+   * Decay rate (0..31, see below for bit 7)
+   * Sustain rate (0..31)
+   * Release rate (0..15)
+   * Sustain level (0..15)
+   * SSG-EG (0..15)
+
+The detune parameter may range from -3 to 3. The VGI file will contain the
+detune value incremented by 3 (i.e. a value of 0 means a detune of -3, while
+a value of 6 means a detune of 3).
+
+Each operator has an AM enable flag. This is stored in the MSB of the decay
+rate byte. If the MSB is 0 then the operator isn't affected by the LFO, while
+if it's 1 then the operator is affected by the LFO.

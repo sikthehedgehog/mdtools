@@ -25,6 +25,7 @@ Tools currently available:
 
    * Sound tools
       - tfi2eif (converts TFM Maker instruments into Echo FM instruments)
+      - vgi2eif (converts VGM Maker instruments into Echo FM instruments)
       - pcm2ewf (converts raw PCM data into Echo PCM instruments)
    
    * Compression
