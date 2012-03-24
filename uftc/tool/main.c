@@ -190,12 +190,12 @@ int main(int argc, char **argv) {
    switch (action) {
       // Compress file
       case ACTION_COMPRESS:
-         errcode = compress(infile, outfile, FORMAT_UFTC16);
+         errcode = compress(infile, outfile, format);
          break;
 
       // Decompress file
       case ACTION_DECOMPRESS:
-         errcode = decompress(infile, outfile, FORMAT_UFTC16);
+         errcode = decompress(infile, outfile, format);
          break;
 
       // Oops!
