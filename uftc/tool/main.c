@@ -3,7 +3,7 @@
 // Program entry point, parses command line and runs stuff as required
 //***************************************************************************
 // Uftc compression tool
-// Copyright 2011 Javier Degirolmo
+// Copyright 2011, 2012 Javier Degirolmo
 //
 // This file is part of the uftc tool.
 //
@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
    int show_help = 0;
    int show_ver = 0;
    int action = ACTION_DEFAULT;
+   int format = FORMAT_DEFAULT;
    const char *infilename = NULL;
    const char *outfilename = NULL;
 
@@ -82,6 +83,14 @@ int main(int argc, char **argv) {
          else if (!strcmp(arg, "-d") || !strcmp(arg, "--decompress"))
             action = action == ACTION_DEFAULT ?
                      ACTION_DECOMPRESS : ACTION_TOOMANY;
+
+         // Specify format?
+         else if (!strcmp(arg, "-16") || !strcmp(arg, "--uftc16"))
+            format = format == FORMAT_DEFAULT ?
+                     FORMAT_UFTC16 : FORMAT_TOOMANY;
+         else if (!strcmp(arg, "-15") || !strcmp(arg, "--uftc15"))
+            format = format == FORMAT_DEFAULT ?
+                     FORMAT_UFTC15 : FORMAT_TOOMANY;
 
          // Unknown argument
          else {
@@ -119,6 +128,10 @@ int main(int argc, char **argv) {
          fprintf(stderr, "Error: too many filenames specified\n");
       }
    }
+   if (format == FORMAT_TOOMANY) {
+      errcode = 1;
+      fprintf(stderr, "Error: too many formats specified\n");
+   }
 
    // If there was an error then quit
    if (errcode)
@@ -128,9 +141,13 @@ int main(int argc, char **argv) {
    if (action == ACTION_DEFAULT)
       action = ACTION_COMPRESS;
 
+   // No format specified?
+   if (format == FORMAT_DEFAULT)
+      format = FORMAT_UFTC16;
+
    // Show tool version?
    if (show_ver) {
-      puts("1.1");
+      puts("1.2");
       return EXIT_SUCCESS;
    }
 
@@ -143,10 +160,13 @@ int main(int argc, char **argv) {
              "Options:\n"
              "  -c or --compress ..... Compress a blob into UFTC\n"
              "  -d or --decompress ... Decompress UFTC into a blob\n"
+             "  -16 or --uftc16 ...... Use UFTC16 format (8192 limit)\n"
+             "  -15 or --uftc15 ...... Use UFTC15 format (4096 limit)\n"
              "  -h or --help ......... Show this help\n"
              "  -v or --version ...... Show tool version\n"
              "\n"
-             "If no option is specified, compression is done by default.\n",
+             "If no option is specified, compression is done by default.\n"
+             "If no format is specified, UFTC16 is used by default.\n",
              argv[0], argv[0]);
       return EXIT_SUCCESS;
    }
@@ -170,12 +190,12 @@ int main(int argc, char **argv) {
    switch (action) {
       // Compress file
       case ACTION_COMPRESS:
-         errcode = compress(infile, outfile);
+         errcode = compress(infile, outfile, FORMAT_UFTC16);
          break;
 
       // Decompress file
       case ACTION_DECOMPRESS:
-         errcode = decompress(infile, outfile);
+         errcode = decompress(infile, outfile, FORMAT_UFTC16);
          break;
 
       // Oops!

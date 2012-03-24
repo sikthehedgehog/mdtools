@@ -3,7 +3,7 @@
 // Header file for "compress.c"
 //***************************************************************************
 // Uftc compression tool
-// Copyright 2011 Javier Degirolmo
+// Copyright 2011, 2012 Javier Degirolmo
 //
 // This file is part of the uftc tool.
 //
@@ -28,6 +28,6 @@
 #include <stdio.h>
 
 // Function prototypes
-int compress(FILE *, FILE *);
+int compress(FILE *, FILE *, int);
 
 #endif

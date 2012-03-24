@@ -10,7 +10,8 @@
 // Required headers
 #include <stdint.h>
 
-// Function prototype
-void decompress_uftc(int16_t *, const int16_t *, int16_t, int16_t);
+// Function prototypes
+void decompress_uftc(uint16_t *, const uint16_t *, uint16_t, uint16_t);
+void decompress_uftc15(int16_t *, const int16_t *, int16_t, int16_t);
 
 #endif

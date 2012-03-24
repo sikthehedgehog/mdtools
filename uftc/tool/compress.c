@@ -3,7 +3,7 @@
 // Compresses a raw blob into an UFTC file
 //***************************************************************************
 // Uftc compression tool
-// Copyright 2011 Javier Degirolmo
+// Copyright 2011, 2012 Javier Degirolmo
 //
 // This file is part of the uftc tool.
 //
@@ -37,10 +37,11 @@ static int putblock(uint8_t **, size_t *, const uint8_t *, uint16_t *);
 //---------------------------------------------------------------------------
 // param infile: input file
 // param outfile: output file
+// param format: format to output for
 // return: error code
 //***************************************************************************
 
-int compress(FILE *infile, FILE *outfile) {
+int compress(FILE *infile, FILE *outfile, int format) {
    // To store error codes
    int errcode;
 
@@ -138,7 +139,8 @@ int compress(FILE *infile, FILE *outfile) {
    // Check that dictionary is OK
    if (dicsize == 0)
       return ERR_TOOSMALL;
-   else if (dicsize >= 0x8000) {
+   else if ((dicsize >= 0x8000 && format == FORMAT_UFTC15) ||
+   (dicsize >= 0x10000 && format == FORMAT_UFTC16)) {
       free(dictionary);
       free(tiles);
       return ERR_TOOBIG;

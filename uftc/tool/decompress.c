@@ -3,7 +3,7 @@
 // Decompresses a UFTC file into a raw blob
 //***************************************************************************
 // Uftc compression tool
-// Copyright 2011 Javier Degirolmo
+// Copyright 2011, 2012 Javier Degirolmo
 //
 // This file is part of the uftc tool.
 //
@@ -33,10 +33,11 @@
 //---------------------------------------------------------------------------
 // param infile: input file
 // param outfile: output file
+// param format: which format to parse for
 // return: error code
 //***************************************************************************
 
-int decompress(FILE *infile, FILE *outfile) {
+int decompress(FILE *infile, FILE *outfile, int format) {
    // To store error codes
    int errcode;
 
@@ -48,7 +49,7 @@ int decompress(FILE *infile, FILE *outfile) {
    // Dictionary size must be valid!
    if (dicsize & 0x0001)
       return ERR_CORRUPT;
-   if (dicsize & 0x8000)
+   if ((dicsize & 0x8000) && format == FORMAT_UFTC15)
       return ERR_CORRUPT;
    if (dicsize < 0x0008)
       return ERR_CORRUPT;

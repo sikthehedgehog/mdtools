@@ -3,7 +3,7 @@
 // Some common definitions and such
 //***************************************************************************
 // Uftc compression tool
-// Copyright 2011 Javier Degirolmo
+// Copyright 2011, 2012 Javier Degirolmo
 //
 // This file is part of the uftc tool.
 //
@@ -38,6 +38,14 @@ enum {
    ERR_CORRUPT,         // File is corrupt?
    ERR_NOMEMORY,        // Ran out of memory
    ERR_UNKNOWN          // Unknown error
+};
+
+// Possible formats
+enum {
+   FORMAT_DEFAULT,      // No format specified
+   FORMAT_UFTC15,       // UFTC15 (15-bit offsets)
+   FORMAT_UFTC16,       // UFTC16 (16-bit offsets)
+   FORMAT_TOOMANY       // Too many formats specified
 };
 
 // Function prototypes

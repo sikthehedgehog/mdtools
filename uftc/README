@@ -16,6 +16,18 @@ tiles and it's pretty fast.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Before version 1.2, UFTC was limited to 15-bit offsets, giving it a limit of
+4096 dictionary entries and 4096 tiles. Since version 1.2, it uses 16-bit
+offsets, giving it a limit of 8192 dictionary entries and 8192 tiles. These
+formats are called UFTC15 and UFTC16, respectively.
+
+If you have used UFTC before, take into account that UFTC15 is forwards
+compatible with UFTC16. In other words, the new code should be able to read
+data compressed for the older versions. You can still use your old files
+without any modifications.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Provided in this package:
 
    * Compression tool source code
@@ -44,6 +56,14 @@ To compress a file:
 To decompress a file:
 
    uftc -d «infile» «outfile»
+
+The tool will default to UFTC16 format. Since UFTC15 files are compatible
+with it, this shouldn't be a problem. If for whatever reason you want to
+enforce the old limitations (e.g. you can't replace the old code), pass the
+-15 or --uftc15 parameter:
+
+   uftc -15 -c «infile» «outfile»
+   uftc -15 -d «infile» «outfile»
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,8 +96,8 @@ Also a C function is provided (md/uftc.c and md/uftc.h) that can be called
 from C code in the Mega Drive to decompress UFTC data. The usage of this
 function is as follows:
 
-   decompress_uftc(int16_t *output, const int16_t *input,
-                   int16_t start, int16_t count)
+   decompress_uftc(uint16_t *output, const uint16_t *input,
+                   uint16_t start, uint16_t count)
 
 Parameters are the same as for its assembly counterpart (see above). Make
 sure to include "uftc.h" wherever you call this function.
