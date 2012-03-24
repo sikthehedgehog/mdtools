@@ -44,7 +44,7 @@ typedef struct {
 
    // Operator parameters
    uint8_t mul[4];         // Multiplier (00..0F)
-   uint8_t dt[4];          // Detune (00..07)
+   uint8_t dt[4];          // Detune (00..06)
    uint8_t tl[4];          // Total level (00..7F)
    uint8_t rs[4];          // Rate scaling (00..03)
    uint8_t ar[4];          // Attack rate (00..1F)
