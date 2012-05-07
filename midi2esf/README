@@ -53,13 +53,15 @@ follows:
 Quick list of commands (square brackets means it's optional), you figure out
 what they do for now though it should be self-explanatory:
 
-   reset instruments
-   reset channels
    instrument fm «midi-instr» «echo-instr» [transpose «semitones»]
    instrument psg «midi-instr» «echo-instr» [transpose «semitones»]
    instrument pcm «midi-note» «echo-instr»
    channel «midi-chan» «echo-chan»
    convert «input-file» «output-file»
+   loop off
+   loop on
+   reset instruments
+   reset channels
 
 «midi-instr» is a number between 1 and 128.
 
