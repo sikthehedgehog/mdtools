@@ -10,9 +10,6 @@ This repository contains a collection of several free tools designed to aid
 in development of Mega Drive homebrew. The objective is to make it easier to
 build better quality homebrew as well as to provide a standard set of tools.
 
-Excuse the fact there isn't much here for the moment. We hope we can add many
-more useful tools later :O)
-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Tools currently available:
@@ -24,6 +21,7 @@ Tools currently available:
       - mdtiler (converts PNG files into Mega Drive tiles)
 
    * Sound tools
+      - midi2esf (converts MIDI files into Echo streams - PRELIMINAR)
       - tfi2eif (converts TFM Maker instruments into Echo FM instruments)
       - vgi2eif (converts VGM Maker instruments into Echo FM instruments)
       - pcm2ewf (converts raw PCM data into Echo PCM instruments)

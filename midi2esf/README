@@ -1,0 +1,75 @@
+THIS IS NOT AN OFFICIAL RELEASE OF MIDI2ESF, I'M UPLOADING THIS ONLY IN CASE
+SOMEBODY REALLY NEEDS IT RIGHT NOW. Currently midi2esf is unfinished, and it
+isn't guaranteed to work properly with all MIDIs. You have been warned.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+What's implemented:
+
+   - Note on, note off :P
+   - Volume changes
+   - Instrument changes
+   - Initial tempo
+   
+   - FM channels, square wave PSG channels, standalone PSG4 channel,
+     PCM channel (mapped to percussion)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Some rules:
+
+   - Each MIDI channel must be mapped to only one Echo channel (yes, the
+     MIDI channels, not the tracks). This also implies no polyphony, if you
+     need that then play notes in separate channels.
+   
+   - Yes, multiple MIDI channels may be assigned to the same Echo channel,
+     just don't get both playing notes at the same time (this is useful
+     mainly to use multiple instruments in the same channel, since changing
+     instruments in the middle of a track seems to be painful with several
+     MIDI editors).
+   
+   - The same MIDI instrument can be mapped to a different Echo instrument
+     for both FM and PSG. This means you can use the same MIDI instrument on
+     both kinds of channels if you wish.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+There are three things that I know that don't work right now:
+
+   - PSG3+PSG4 mode (incomplete, stand-alone PSG4 works though)
+   - Pitch slide (may work, but I didn't test it yet...)
+   - Mid-tune tempo changes (not implemented yet)
+
+=============================================================================
+
+midi2esf works with a batch file, similar to how mdtiler works. I'd suggest
+go check mdtiler to get an idea of how to use it meanwhile. Call midi2esf as
+follows:
+
+   midi2esf «batch-file»
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Quick list of commands (square brackets means it's optional), you figure out
+what they do for now though it should be self-explanatory:
+
+   reset instruments
+   reset channels
+   instrument fm «midi-instr» «echo-instr» [transpose «semitones»]
+   instrument psg «midi-instr» «echo-instr» [transpose «semitones»]
+   instrument pcm «midi-note» «echo-instr»
+   channel «midi-chan» «echo-chan»
+   convert «input-file» «output-file»
+
+«midi-instr» is a number between 1 and 128.
+
+«echo-instr» is a number between 0 and 255.
+
+«midi-note» is a number between 0 and 127 (it's in semitones, so every 12 is
+a different octave). C-5 is 60, for reference.
+
+«midi-chan» may be a number from 1 to 16. You can't reassign MIDI channel #10
+(percussion) though, since it's always mapped to Echo's PCM channel.
+
+«echo-chan» may be fm1, fm2, fm3, fm4, fm5, fm6, psg1, psg2, psg3 or psg4.
+(there's psg3+psg4 too, but it isn't fully implemented yet)

@@ -5,7 +5,7 @@ LDFLAGS=-lpicel -lpng15 -lz
 all: mdtiler
 
 mdtiler: main.o tiles.o batch.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 main.o: main.c main.h tiles.h batch.h
 tiles.o: tiles.c main.h
