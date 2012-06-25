@@ -283,6 +283,15 @@ int write_esf(const char *filename, int loop) {
 
          // Note off?
          case EVENT_NOTEOFF:
+            // Quick optimization: if the next event is a note on for this
+            // same channel, throw away the note off (since Echo will handle
+            // this on its own). It won't catch all the relevant cases, but
+            // it should work with most MIDIs and will reduce the filesize
+            // most of the time.
+            if (event->next != NULL && event->next->type == EVENT_NOTEON &&
+            event->next->channel == event->channel)
+               break;
+
             // Mark note as not playing
             status[event->channel].note = -1;
 
