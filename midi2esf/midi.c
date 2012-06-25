@@ -54,6 +54,7 @@ static int read_chunk(FILE *, Chunk *);
 static void free_chunk(Chunk *);
 static int32_t read_varlen(uint8_t **, size_t *);
 static void calculate_timestamp(int32_t, MidiTiming *);
+static int calculate_volume(int, int);
 
 // A list of MIDI-to-Echo channel mappings
 static int channel_map[NUM_MIDICHAN];
@@ -63,6 +64,7 @@ static int channel_map[NUM_MIDICHAN];
 static struct {
    int instrument;      // Echo instrument (-1 = not mapped)
    int transpose;       // Transpose (in semitones)
+   int volume;          // Volume scaling (percentage)
 } instr_map[NUM_INSTRTYPES][NUM_MIDIINSTR];
 
 // Status of each MIDI channel as we parse stuff
@@ -331,45 +333,51 @@ int read_midi(const char *filename) {
                e->channel = channel_map[event & 0x0F];
             }
 
-            // Get target channel
-            int channel = channel_map[event & 0x0F];
+            // If velocity isn't 0 then it's a normal note on event, keep
+            // parsing it as usual.
+            else {
+               // Get target channel
+               int channel = channel_map[event & 0x0F];
 
-            // Get note to play
-            int note = ptr[0];
-            status[event & 0x0F].note = note << 4;
+               // Get note to play
+               int note = ptr[0];
 
-            // Calculate volume
-            status[event & 0x0F].velocity = ptr[1];
-            int volume = status[event & 0x0F].volume *
-               status[event & 0x0F].velocity / 0x7F;
+               // Calculate volume
+               status[event & 0x0F].velocity = ptr[1];
+               int volume = calculate_volume(event & 0x0F, channel);
 
-            // Get instrument to use
-            int instrument = -1;
-            if (channel >= CHAN_FM1 && channel <= CHAN_FM6) {
-               instrument = instr_map[INSTR_FM]
-                  [status[event & 0x0F].instrument].instrument;
-               note += instr_map[INSTR_FM]
-                  [status[event & 0x0F].instrument].transpose;
-            } else if (channel >= CHAN_PSG1 && channel <= CHAN_PSG4EX) {
-               instrument = instr_map[INSTR_PSG]
-                  [status[event & 0x0F].instrument].instrument;
-               note += instr_map[INSTR_PSG]
-                  [status[event & 0x0F].instrument].transpose;
-            } else if (channel == CHAN_PCM)
-               instrument = instr_map[INSTR_PCM][note].instrument;
+               // Get instrument to use
+               int instrument = -1;
+               if (channel >= CHAN_FM1 && channel <= CHAN_FM6) {
+                  instrument = instr_map[INSTR_FM]
+                     [status[event & 0x0F].instrument].instrument;
+                  note += instr_map[INSTR_FM]
+                     [status[event & 0x0F].instrument].transpose;
+               } else if (channel >= CHAN_PSG1 && channel <= CHAN_PSG4EX) {
+                  instrument = instr_map[INSTR_PSG]
+                     [status[event & 0x0F].instrument].instrument;
+                  note += instr_map[INSTR_PSG]
+                     [status[event & 0x0F].instrument].transpose;
+               } else if (channel == CHAN_PCM)
+                  instrument = instr_map[INSTR_PCM][note].instrument;
 
-            // Issue a note on event for this channel
-            Event *e = add_event(timing.last);
-            if (e == NULL) {
-               errcode = ERR_NOMEMORY;
-               goto error;
+               // Issue a note on event for this channel
+               Event *e = add_event(timing.last);
+               if (e == NULL) {
+                  errcode = ERR_NOMEMORY;
+                  goto error;
+               }
+               e->type = EVENT_NOTEON;
+               e->param = (channel == CHAN_PCM) ? instrument : note;
+               e->channel = channel;
+               e->instrument = instrument;
+               e->volume = volume;
+               e->panning = status[event & 0x0F].panning;
+
+               // Keep track of which semitone is playing (needed for slides
+               // to work properly)
+               status[event & 0x0F].note = note << 4;
             }
-            e->type = EVENT_NOTEON;
-            e->param = (channel == CHAN_PCM) ? instrument : note;
-            e->channel = channel;
-            e->instrument = instrument;
-            e->volume = volume;
-            e->panning = status[event & 0x0F].panning;
 
             // Go for next event
             ptr += 2;
@@ -407,8 +415,7 @@ int read_midi(const char *filename) {
 
             // Calculate new volume
             status[event & 0x0F].velocity = ptr[1];
-            int volume = status[event & 0x0F].volume *
-               status[event & 0x0F].velocity / 0x7F;
+            int volume = calculate_volume(event & 0x0F, channel);
 
             // Issue a volume change event for this channel
             Event *e = add_event(timing.last);
@@ -462,8 +469,7 @@ int read_midi(const char *filename) {
 
                   // Calculate new volume
                   status[event & 0x0F].velocity = ptr[1];
-                  int volume = status[event & 0x0F].volume *
-                     status[event & 0x0F].velocity / 0x7F;
+                  int volume = calculate_volume(event & 0x0F, channel);
 
                   // Issue a volume change event for this channel
                   Event *e = add_event(timing.last);
@@ -563,8 +569,7 @@ int read_midi(const char *filename) {
 
             // Calculate new volume
             status[event & 0x0F].velocity = ptr[0];
-            int volume = status[event & 0x0F].volume *
-               status[event & 0x0F].velocity / 0x7F;
+            int volume = calculate_volume(event & 0x0F, channel);
 
             // Issue a volume change event for this channel
             Event *e = add_event(timing.last);
@@ -608,7 +613,8 @@ int read_midi(const char *filename) {
 
             // Calculate note to play (in 1/16ths of a semitone)
             int wheel = ptr[1] << 7 | ptr[0];
-            int note = status[event & 0x0F].note * wheel / 0x2000;
+            int note = status[event & 0x0F].note +
+                       (wheel - 0x2000) / 0x100;
 
             // Issue a pitch change event for this channel
             Event *e = add_event(timing.last);
@@ -625,16 +631,28 @@ int read_midi(const char *filename) {
             size -= 2;
          }
 
-         // Ignore SysEx events (yes, I know this code doesn't seem to follow
-         // the MIDI spec, but this is pretty much how it should behave if we
-         // ignore all SysEx events)
+         // Ignore SysEx events
          else if (event == 0xF0 || event == 0xF7) {
-            for (;;) {
-               if (size == 0) break;
-               if (*ptr & 0x80) break;
-               ptr++;
-               size--;
+            // Get length of event
+            int32_t len = read_varlen(&ptr, &size);
+            if (len == -1) {
+#ifdef DEBUG
+               fputs("DEBUG: invalid length for SysEx event\n", stderr);
+#endif
+               errcode = ERR_CORRUPT;
+               goto error;
             }
+
+            // Skip bytes as needed
+            if ((uint32_t)(len) > size) {
+#ifdef DEBUG
+               fputs("DEBUG: ran out of bytes for SysEx event\n", stderr);
+#endif
+               errcode = ERR_CORRUPT;
+               goto error;
+            }
+            ptr += len;
+            size -= len;
          }
 
          // Meta event?
@@ -879,15 +897,18 @@ void map_channel(int midichan, int echochan) {
 // param midiinstr: MIDI instrument (0 to 127)
 // param echoinstr: Echo instrument (0 to 255)
 // param transpose: transpose (in semitones)
+// param volume: volume scale (percentage)
 //***************************************************************************
 
-void map_instrument(int type, int midiinstr, int echoinstr, int transpose) {
+void map_instrument(int type, int midiinstr, int echoinstr, int transpose,
+int volume) {
    instr_map[type][midiinstr].instrument = echoinstr;
    instr_map[type][midiinstr].transpose = transpose;
+   instr_map[type][midiinstr].volume = volume;
 }
 
 //***************************************************************************
-// calculate_timestamp
+// calculate_timestamp [internal]
 // Calculates the timestamp of an event (in Echo ticks!)
 //---------------------------------------------------------------------------
 // param delta: delta time for this event
@@ -932,4 +953,37 @@ static void calculate_timestamp(int32_t delta, MidiTiming *timing) {
 
    // Update timestamp
    timing->last += value;
+}
+
+//***************************************************************************
+// calculate_volume [internal]
+// Returns the output volume (to pass to the ESF parser) of the specified
+// channel.
+//---------------------------------------------------------------------------
+// param midichan: MIDI channel
+// param echochan: Echo channel
+// return: output volume (0..127)
+//***************************************************************************
+
+static int calculate_volume(int midichan, int echochan) {
+   // Calculate the actual volume based on all the parameters (thanks MIDI!)
+   int output = status[midichan].volume *
+      status[midichan].velocity / 0x7F;
+
+   // Apply instrument's volume scaling
+   if (echochan >= CHAN_FM1 && echochan <= CHAN_FM6) {
+      output = output * instr_map[INSTR_FM]
+      [status[midichan].instrument].volume / 100;
+   } else if (echochan >= CHAN_PSG1 && echochan <= CHAN_PSG4EX) {
+      output = output * instr_map[INSTR_PSG]
+      [status[midichan].instrument].volume / 100;
+   } else
+      output = 0x7F;
+
+   // Cap the volume to ensure it doesn't go past the limit
+   if (output > 0x7F)
+      output = 0x7F;
+
+   // Return final volume
+   return output;
 }

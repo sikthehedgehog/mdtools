@@ -162,7 +162,7 @@ int write_esf(const char *filename, int loop) {
       int instrument;         // Last instrument used (-1 if none)
       int volume;             // Last volume used (-1 if none)
       int panning;            // Last panning used (-1 if none)
-      int note;               // Last note used (as 1/16ths of a semitone)
+      int note;               // Last note used (in 1/16ths, -1 if none)
    } status[NUM_ECHOCHAN];
 
    // Initialize channel status to undefined
@@ -170,6 +170,7 @@ int write_esf(const char *filename, int loop) {
       status[i].instrument = -1;
       status[i].volume = -1;
       status[i].panning = -1;
+      status[i].note = -1;
    }
 
    // Open output file
@@ -207,11 +208,11 @@ int write_esf(const char *filename, int loop) {
          last_time = curr_time;
       }
 
-      //
+      // Determine channel panning (FM only)
       int panning;
       if (event->panning < 0x20)
          panning = 0x80;
-      else if (event->panning > 0x5F)
+      else if (event->panning >= 0x60)
          panning = 0x40;
       else
          panning = 0xC0;
@@ -266,7 +267,7 @@ int write_esf(const char *filename, int loop) {
             }
 
             // Panning change?
-            if (event->panning != panning) {
+            if (panning != status[event->channel].panning) {
                status[event->channel].panning = panning;
                errcode = write_panning(file, event->channel, panning);
                if (errcode) goto error;
@@ -276,12 +277,15 @@ int write_esf(const char *filename, int loop) {
             status[event->channel].note = event->param << 4;
 
             // Issue Echo note on event
-            errcode = write_noteon(file, event->channel, event->param >> 4);
+            errcode = write_noteon(file, event->channel, event->param);
             if (errcode) goto error;
             break;
 
          // Note off?
          case EVENT_NOTEOFF:
+            // Mark note as not playing
+            status[event->channel].note = -1;
+
             // Issue Echo note off event
             errcode = write_noteoff(file, event->channel);
             if (errcode) goto error;
@@ -289,6 +293,10 @@ int write_esf(const char *filename, int loop) {
 
          // Change pitch?
          case EVENT_SLIDE:
+            // Don't do anything if the note isn't playing!
+            if (status[event->channel].note == -1)
+               break;
+
             // Check if a change in pitch is needed for starters
             // (do nothing if it wouldn't change)
             if (status[event->channel].note == event->param)

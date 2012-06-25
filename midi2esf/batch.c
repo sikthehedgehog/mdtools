@@ -75,9 +75,9 @@ int process_batch(const char *filename) {
 
    // Reset all instrument mappings
    for (unsigned i = 0; i < NUM_MIDIINSTR; i++) {
-      map_instrument(INSTR_FM, i, -1, 0);
-      map_instrument(INSTR_PSG, i, -1, 0);
-      map_instrument(INSTR_PCM, i, -1, 0);
+      map_instrument(INSTR_FM, i, -1, 0, 100);
+      map_instrument(INSTR_PSG, i, -1, 0, 100);
+      map_instrument(INSTR_PCM, i, -1, 0, 100);
    }
 
    // Open batch file
@@ -307,6 +307,7 @@ int process_batch(const char *filename) {
          // Optional parameters
          // Use sensible defaults
          int transpose = 0;
+         int volume = 100;
 
          // Check number of arguments
          if (args.num_tokens < 4) {
@@ -372,12 +373,7 @@ int process_batch(const char *filename) {
             }
          }
 
-         // ...
-         // To-do: look for any extra arguments
-         // To-do: add transpose support
-         // ...
-
-         //
+         // Look for optional arguments
          for (unsigned i = 4; i < args.num_tokens; ) {
             // Transpose?
             if (!strcmp(args.tokens[i], "transpose")) {
@@ -393,6 +389,26 @@ int process_batch(const char *filename) {
                i += 2;
             }
 
+            // Volume scaling?
+            else if (!strcmp(args.tokens[i], "volume")) {
+               // Make sure we have the volume scale
+               if (i + 1 >= args.num_tokens) {
+                  failed = 1;
+                  fputs("missing volume scale percentage\n", stderr);
+                  break;
+               }
+
+               // Get volume scale and check if it's valid
+               volume = atoi(args.tokens[i+1]);
+               if (volume < 0) {
+                  failed = 1;
+                  fputs("volume scaling can't be negative\n", stderr);
+               }
+
+               // Keep going
+               i += 2;
+            }
+
             // Unknown argument
             else {
                failed = 1;
@@ -403,8 +419,10 @@ int process_batch(const char *filename) {
          }
 
          // Store instrument mapping
-         if (!failed)
-            map_instrument(instr_type, midi_instr, echo_instr, transpose);
+         if (!failed) {
+            map_instrument(instr_type, midi_instr, echo_instr,
+            transpose, volume);
+         }
       }
 
       // Enable/disable looping?
@@ -470,9 +488,9 @@ int process_batch(const char *filename) {
             // Reset instruments?
             if (!strcmp(args.tokens[1], "instruments")) {
                for (unsigned i = 0; i < NUM_MIDIINSTR; i++) {
-                  map_instrument(INSTR_FM, i, -1, 0);
-                  map_instrument(INSTR_PSG, i, -1, 0);
-                  map_instrument(INSTR_PCM, i, -1, 0);
+                  map_instrument(INSTR_FM, i, -1, 0, 100);
+                  map_instrument(INSTR_PSG, i, -1, 0, 100);
+                  map_instrument(INSTR_PCM, i, -1, 0, 100);
                }
             }
 

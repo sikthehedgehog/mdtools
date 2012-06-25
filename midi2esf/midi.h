@@ -39,6 +39,6 @@ typedef enum {
 // Function prototypes
 int read_midi(const char *);
 void map_channel(int, int);
-void map_instrument(int, int, int, int);
+void map_instrument(int, int, int, int, int);
 
 #endif
