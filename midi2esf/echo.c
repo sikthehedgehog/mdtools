@@ -570,17 +570,14 @@ static int write_slide(FILE *file, int channel, int note) {
       // Determine event parameter
       unsigned octave = (note >> 4) / 12;
       uint16_t freq = psg_freq[note % (12 << 4)];
-      while (octave > 0) {
-         freq >>= 1;
-         octave--;
-      }
+      freq >>= octave;
 
       // Output event values
       if (fputc(ECHO_FREQ | out_chan, file) == EOF)
          return ERR_WRITEESF;
       if (fputc(freq & 0x0F, file) == EOF)
          return ERR_WRITEESF;
-      if (fputc(freq >> 6, file) == EOF)
+      if (fputc(freq >> 4, file) == EOF)
          return ERR_WRITEESF;
    }
 
