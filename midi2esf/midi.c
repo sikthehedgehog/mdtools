@@ -78,6 +78,9 @@ static struct {
    int note;            // Last played note (-1 = none)
 } status[NUM_MIDICHAN];
 
+// Value used to convert the value of a pitch wheel event into semitones
+static int pitch_factor;
+
 //***************************************************************************
 // read_midi
 // Reads the data from a MIDI file and gathers the events from it.
@@ -613,8 +616,10 @@ int read_midi(const char *filename) {
 
             // Calculate note to play (in 1/16ths of a semitone)
             int wheel = ptr[1] << 7 | ptr[0];
+            /*int note = status[event & 0x0F].note +
+                       (wheel - 0x2000) / 0x100;*/
             int note = status[event & 0x0F].note +
-                       (wheel - 0x2000) / 0x100;
+                       (wheel - 0x2000) / pitch_factor;
 
             // Issue a pitch change event for this channel
             Event *e = add_event(timing.last);
@@ -908,6 +913,18 @@ int volume) {
 }
 
 //***************************************************************************
+// set_pitch_range
+// Sets the range for pitch wheel. The range is given in the amount of
+// semitones it can go up/down (default: 2).
+//---------------------------------------------------------------------------
+// param range: amount of semitones
+//***************************************************************************
+
+void set_pitch_range(int range) {
+   pitch_factor = 0x200 / range;
+}
+
+//***************************************************************************
 // calculate_timestamp [internal]
 // Calculates the timestamp of an event (in Echo ticks!)
 //---------------------------------------------------------------------------
@@ -983,6 +1000,8 @@ static int calculate_volume(int midichan, int echochan) {
    // Cap the volume to ensure it doesn't go past the limit
    if (output > 0x7F)
       output = 0x7F;
+   if (output < 0x00)
+      output = 0x00;
 
    // Return final volume
    return output;

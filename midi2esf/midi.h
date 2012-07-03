@@ -40,5 +40,6 @@ typedef enum {
 int read_midi(const char *);
 void map_channel(int, int);
 void map_instrument(int, int, int, int, int);
+void set_pitch_range(int);
 
 #endif

@@ -88,6 +88,9 @@ int process_batch(const char *filename) {
    // Some parameters that affect how the streams are generated
    int looping = 0;
 
+   // Set default range for pitch wheel
+   set_pitch_range(2);
+
    // Read entire file
    for (unsigned line_num = 1; !feof(file); line_num++) {
       // Get next line
@@ -307,7 +310,7 @@ int process_batch(const char *filename) {
          // Optional parameters
          // Use sensible defaults
          int transpose = 0;
-         int volume = 100;
+         int gain = 100;
 
          // Check number of arguments
          if (args.num_tokens < 4) {
@@ -390,19 +393,19 @@ int process_batch(const char *filename) {
             }
 
             // Volume scaling?
-            else if (!strcmp(args.tokens[i], "volume")) {
-               // Make sure we have the volume scale
+            else if (!strcmp(args.tokens[i], "gain")) {
+               // Make sure we have the gain
                if (i + 1 >= args.num_tokens) {
                   failed = 1;
-                  fputs("missing volume scale percentage\n", stderr);
+                  fputs("missing gain percentage\n", stderr);
                   break;
                }
 
-               // Get volume scale and check if it's valid
-               volume = atoi(args.tokens[i+1]);
-               if (volume < 0) {
+               // Get gain and check if it's valid
+               gain = atoi(args.tokens[i+1]);
+               if (gain < 0) {
                   failed = 1;
-                  fputs("volume scaling can't be negative\n", stderr);
+                  fputs("gain can't be negative\n", stderr);
                }
 
                // Keep going
@@ -421,7 +424,7 @@ int process_batch(const char *filename) {
          // Store instrument mapping
          if (!failed) {
             map_instrument(instr_type, midi_instr, echo_instr,
-            transpose, volume);
+            transpose, gain);
          }
       }
 
@@ -460,6 +463,45 @@ int process_batch(const char *filename) {
                fprintf(stderr, "\"%s\" is not a valid looping setting\n",
                   args.tokens[1]);
             }
+         }
+      }
+
+      // Set the default pitch range?
+      else if (!strcmp(args.tokens[0], "pitchrange")) {
+         // Check number of arguments
+         if (args.num_tokens != 2) {
+            // Parsing failed...
+            failed = 1;
+
+            // Determine message to show depending on how many arguments
+            // were we given (determine the cause of the error)
+            const char *msg;
+            if (args.num_tokens == 1)
+               msg = "missing amount of semitones\n";
+            else
+               msg = "too many arguments\n";
+
+            // Show error message
+            print_error_line(line_num);
+            fputs(msg, stderr);
+         }
+
+         // Arguments fine, process the new value...
+         else {
+            // Get range in semitones
+            int range = atoi(args.tokens[1]);
+
+            // Check that the range is valid
+            if (range <= 0) {
+               failed = 1;
+               print_error_line(line_num);
+               fprintf(stderr, "\"%s\" is not a valid range\n",
+                  args.tokens[1]);
+            }
+
+            // Set the new range as the default one
+            else
+               set_pitch_range(range);
          }
       }
 
