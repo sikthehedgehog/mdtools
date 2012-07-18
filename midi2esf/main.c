@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("0.7");
+      puts("0.8");
       return EXIT_SUCCESS;
    }
 

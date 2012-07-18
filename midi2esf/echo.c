@@ -657,6 +657,16 @@ static int write_instrument(FILE *file, int channel, int instrument) {
    if (fputc(instrument, file) == EOF)
       return ERR_WRITEESF;
 
+   // Quick hack to ensure PSG3 has a valid instrument in PSG3+PSG4 mode
+   // Dirty, but it's probably better than spamming set frequency events
+   // for PSG3 (as those take up more space than note on events).
+   if (channel == CHAN_PSG4EX) {
+      if (fputc(ECHO_INSTR | ECHO_PSG3, file) == EOF)
+         return ERR_WRITEESF;
+      if (fputc(instrument, file) == EOF)
+         return ERR_WRITEESF;
+   }
+
    // Success!
    return ERR_NONE;
 }
