@@ -24,12 +24,12 @@
 // Required headers
 #include <stdint.h>
 #include <stdio.h>
-#include <picel.h>
 #include "main.h"
+#include "bitmap.h"
 #include "tiles.h"
 
 // Prototype for functions used to fetch tiles
-typedef int TileFunc(const PicelBitmap *, FILE *, int, int);
+typedef int TileFunc(const Bitmap *, FILE *, int, int);
 
 // Current tile output format
 static Format format = FORMAT_4BPP;
@@ -56,7 +56,7 @@ void set_output_format(Format value) {
 // return: error code
 //***************************************************************************
 
-static int fetch_tile_1bpp(const PicelBitmap *in, FILE *out, int bx, int by)
+static int fetch_tile_1bpp(const Bitmap *in, FILE *out, int bx, int by)
 {
    // To store the tile data
    uint8_t data[8];
@@ -67,7 +67,7 @@ static int fetch_tile_1bpp(const PicelBitmap *in, FILE *out, int bx, int by)
       uint8_t temp = 0;
       for (int x = 0; x < 8; x++) {
          temp <<= 1;
-         temp |= picel_get_raw_pixel(in, bx + x, by + y) & 0x01;
+         temp |= get_pixel(in, bx + x, by + y) & 0x01;
       }
       *ptr = temp;
    }
@@ -91,7 +91,7 @@ static int fetch_tile_1bpp(const PicelBitmap *in, FILE *out, int bx, int by)
 // return: error code
 //***************************************************************************
 
-static int fetch_tile_4bpp(const PicelBitmap *in, FILE *out, int bx, int by)
+static int fetch_tile_4bpp(const Bitmap *in, FILE *out, int bx, int by)
 {
    // To store the tile data
    uint8_t data[32];
@@ -100,8 +100,8 @@ static int fetch_tile_4bpp(const PicelBitmap *in, FILE *out, int bx, int by)
    uint8_t *ptr = data;
    for (int y = 0; y < 8; y++)
    for (int x = 0; x < 8; x += 2) {
-      *ptr++ = (picel_get_raw_pixel(in, bx + x, by + y) << 4) |
-               (picel_get_raw_pixel(in, bx + x + 1, by + y) & 0x0F);
+      *ptr++ = (get_pixel(in, bx + x, by + y) << 4) |
+               (get_pixel(in, bx + x + 1, by + y) & 0x0F);
    }
 
    // Write tile blob into output file
@@ -123,7 +123,7 @@ static int fetch_tile_4bpp(const PicelBitmap *in, FILE *out, int bx, int by)
 // return: ERR_UNKNOWN
 //***************************************************************************
 
-static int fetch_tile_error(const PicelBitmap *in, FILE *out, int bx, int by)
+static int fetch_tile_error(const Bitmap *in, FILE *out, int bx, int by)
 {
    // To shut up the compiler
    (void) in;
@@ -165,7 +165,7 @@ static inline TileFunc *get_tile_func(void) {
 // return: error code
 //***************************************************************************
 
-int write_tilemap(const PicelBitmap *in, FILE *out, int bx, int by,
+int write_tilemap(const Bitmap *in, FILE *out, int bx, int by,
 int width, int height) {
    // Determine function we're going to use to fetch tiles
    TileFunc *func = get_tile_func();
@@ -195,7 +195,7 @@ int width, int height) {
 // return: error code
 //***************************************************************************
 
-int write_sprite(const PicelBitmap *in, FILE *out, int bx, int by,
+int write_sprite(const Bitmap *in, FILE *out, int bx, int by,
 int width, int height) {
    // Determine function we're going to use to fetch tiles
    TileFunc *func = get_tile_func();

@@ -27,6 +27,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "main.h"
+#include "bitmap.h"
 #include "tiles.h"
 
 // Possible layout formats
@@ -68,7 +69,7 @@ int build_batch(const char *infilename) {
       return ERR_OPENBATCH;
 
    // Current state
-   PicelBitmap *in = NULL;             // Input bitmap
+   Bitmap *in = NULL;                  // Input bitmap
    FILE *out = NULL;                   // Output blob
    Layout layout = LAYOUT_TILEMAP;     // Tile ordering
 
@@ -140,11 +141,11 @@ int build_batch(const char *infilename) {
          else {
             // Close old bitmap if needed
             if (in != NULL)
-               picel_destroy_bitmap(in);
+               destroy_bitmap(in);
 
             // Attempt to load input bitmap
             const char *filename = args.tokens[1];
-            in = picel_load_bitmap(filename);
+            in = load_bitmap(filename);
 
             // Oops?
             if (in == NULL) {
@@ -320,7 +321,7 @@ int build_batch(const char *infilename) {
             // Gah!
             if (errcode) {
                // Deallocate everything
-               if (in) picel_destroy_bitmap(in);
+               if (in) destroy_bitmap(in);
                if (out) fclose(out);
                free_tokens(&args);
                fclose(file);
@@ -343,7 +344,7 @@ int build_batch(const char *infilename) {
    }
 
    // Done with the resources
-   if (in) picel_destroy_bitmap(in);
+   if (in) destroy_bitmap(in);
    if (out) fclose(out);
 
    // We're done

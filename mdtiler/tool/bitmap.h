@@ -1,6 +1,6 @@
 //***************************************************************************
-// "tiles.h"
-// Header file for "tiles.c"
+// "bitmap.h"
+// Header file for "bitmap.c"
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
 // Copyright 2011, 2012 Javier Degirolmo
@@ -21,24 +21,23 @@
 // along with mdtiler.  If not, see <http://www.gnu.org/licenses/>.
 //***************************************************************************
 
-#ifndef TILES_H
-#define TILES_H
+#ifndef BITMAP_H
+#define BITMAP_H
 
 // Required headers
-#include <stdio.h>
-#include "bitmap.h"
+#include <stdint.h>
 
-// Possible tile output formats
-typedef enum {
-   FORMAT_DEFAULT,      // Use default format
-   FORMAT_4BPP,         // 4bpp tiles
-   FORMAT_1BPP,         // 1bpp tiles
-   FORMAT_TOOMANY       // Too many formats specified
-} Format;
+// Definition of a bitmap
+typedef struct {
+   int width;              // Width in pixels
+   int height;             // Height in pixels
+   uint8_t *data;          // Bitmap data
+   uint8_t **rows;         // Pointers to each row
+} Bitmap;
 
 // Function prototypes
-void set_output_format(Format);
-int write_tilemap(const Bitmap *, FILE *, int, int, int, int);
-int write_sprite(const Bitmap *, FILE *, int, int, int, int);
+Bitmap *load_bitmap(const char *);
+uint8_t get_pixel(const Bitmap *, int, int);
+void destroy_bitmap(Bitmap *);
 
 #endif

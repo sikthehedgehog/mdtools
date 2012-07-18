@@ -25,10 +25,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <picel.h>
 #include "main.h"
-#include "tiles.h"
 #include "batch.h"
+#include "bitmap.h"
+#include "tiles.h"
 
 // Actions that may be performed
 typedef enum {
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.1");
+      puts("1.2");
       return EXIT_SUCCESS;
    }
 
@@ -242,25 +242,24 @@ int main(int argc, char **argv) {
 
 int build_tilemap(const char *infilename, const char *outfilename) {
    // Load input bitmap
-   PicelBitmap *in = picel_load_bitmap(infilename);
+   Bitmap *in = load_bitmap(infilename);
    if (in == NULL)
       return ERR_OPENINPUT;
 
    // Open output file
    FILE *out = fopen(outfilename, "wb");
    if (out == NULL) {
-      picel_destroy_bitmap(in);
+      destroy_bitmap(in);
       return ERR_OPENOUTPUT;
    }
 
    // Parse the bitmap as a massive tilemap
    int errcode = write_tilemap(in, out, 0, 0,
-      picel_get_bitmap_width(in) >> 3,
-      picel_get_bitmap_height(in) >> 3);
+      in->width >> 3, in->height >> 3);
 
    // We're done, return whatever happened
    fclose(out);
-   picel_destroy_bitmap(in);
+   destroy_bitmap(in);
    return errcode;
 }
 
@@ -275,24 +274,23 @@ int build_tilemap(const char *infilename, const char *outfilename) {
 
 int build_sprite(const char *infilename, const char *outfilename) {
    // Load input bitmap
-   PicelBitmap *in = picel_load_bitmap(infilename);
+   Bitmap *in = load_bitmap(infilename);
    if (in == NULL)
       return ERR_OPENINPUT;
 
    // Open output file
    FILE *out = fopen(outfilename, "wb");
    if (out == NULL) {
-      picel_destroy_bitmap(in);
+      destroy_bitmap(in);
       return ERR_OPENOUTPUT;
    }
 
    // Parse the bitmap as a massive sprite
    int errcode = write_sprite(in, out, 0, 0,
-      picel_get_bitmap_width(in) >> 3,
-      picel_get_bitmap_height(in) >> 3);
+      in->width >> 3, in->height >> 3);
 
    // We're done, return whatever happened
    fclose(out);
-   picel_destroy_bitmap(in);
+   destroy_bitmap(in);
    return errcode;
 }

@@ -5,7 +5,7 @@
 | | | | | | |_| | | | | | |___| |___| |\ \
 |_| |_| |_|____/  |_| |_|_____|_____|_| \_\
 
-mdtiler version 1.1
+mdtiler version 1.2
 ©2011,2012 Sik the hedgehog
 
 mdtiler is a command line tool to convert images into tiles that can be used
@@ -20,7 +20,6 @@ for more details, or check http://www.gnu.org/licenses/gpl-3.0.txt
 In order to build the current version of mdtiler you will need the following
 libraries:
 
-   - Picel (https://github.com/sikthehedgehog/Picel)
    - libpng
    - zlib
 
