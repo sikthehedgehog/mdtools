@@ -36,6 +36,7 @@ typedef struct {
 } Bitmap;
 
 // Function prototypes
+void set_palette(const uint16_t *);
 Bitmap *load_bitmap(const char *);
 uint8_t get_pixel(const Bitmap *, int, int);
 void destroy_bitmap(Bitmap *);

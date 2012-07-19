@@ -23,14 +23,68 @@
 
 // Required headers
 #include <stdint.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include <png.h>
 #include "bitmap.h"
 
+// Look-up table used to convert true color bitmaps into paletted ones
+// Contains which color to use for each BGR combination.
+#define PALTABLE_SIZE (0x20*0x20*0x20)
+uint8_t pal_table[PALTABLE_SIZE];
+
 // Prototype of callback function used by libpng
 static void read_callback(png_structp, png_bytep, png_size_t);
+
+//***************************************************************************
+// set_palette
+// Sets the palette to use to convert true color bitmaps into paletted ones.
+// This function takes an array of 16 colors, each color being a MD color
+// (i.e. BXGXRX 3.1.3.1.3.1)
+//---------------------------------------------------------------------------
+// param colors: pointer to palette (16 entries)
+//***************************************************************************
+
+void set_palette(const uint16_t *colors) {
+   // Go through the entire palette
+   for (uint16_t i = 0; i < PALTABLE_SIZE; i++) {
+      // Get BGR components for the color to check
+      uint8_t sb = i >> 10 & 0x1F;
+      uint8_t sg = i >> 5 & 0x1F;
+      uint8_t sr = i & 0x1F;
+
+      // Used to determine which is the best match
+      uint8_t best = 0;
+      unsigned min_diff = UINT_MAX;
+
+      // Check it against every color in the palette
+      for (uint8_t i = 0; i < 0x10; i++) {
+         // Get BGR components for this palette entry
+         uint8_t db = colors[i] >> 9 & 0x07;
+         uint8_t dg = colors[i] >> 5 & 0x07;
+         uint8_t dr = colors[i] >> 1 & 0x07;
+         db = db << 2 | db >> 3;
+         dg = dg << 2 | dg >> 3;
+         dr = dr << 2 | dr >> 3;
+
+         // Get how different are the colors
+         unsigned diff = abs(dr - sr) + abs(dg - sg) + abs(db - sb);
+
+         // Is this color a better match?
+         if (diff <= min_diff) {
+            best = i;
+            min_diff = diff;
+            if (diff == 0)
+               break;
+         }
+      }
+
+      // Store best match into the look-up table
+      pal_table[i] = best;
+   }
+}
 
 //***************************************************************************
 // load_bitmap
@@ -80,7 +134,8 @@ Bitmap *load_bitmap(const char *filename) {
 
    // Read bitmap into memory
    png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 |
-      PNG_TRANSFORM_PACKING | PNG_TRANSFORM_SHIFT, NULL);
+      PNG_TRANSFORM_PACKING | PNG_TRANSFORM_SHIFT |
+      PNG_TRANSFORM_STRIP_ALPHA, NULL);
 
    // Get pointers to each row
    png_bytepp rows = png_get_rows(png_ptr, info_ptr);
@@ -89,13 +144,6 @@ Bitmap *load_bitmap(const char *filename) {
    int32_t width = png_get_image_width(png_ptr, info_ptr);
    int32_t height = png_get_image_height(png_ptr, info_ptr);
    int type = png_get_color_type(png_ptr, info_ptr);
-
-   // Sorry, we currently don't support non-paletted bitmaps :(
-   if (type != PNG_COLOR_TYPE_PALETTE) {
-      png_destroy_read_struct(&png_ptr, NULL, NULL);
-      fclose(file);
-      return NULL;
-   }
 
    // Create structure to hold the bitmap object
    Bitmap *ptr = (Bitmap *) malloc(sizeof(Bitmap));
@@ -133,10 +181,39 @@ Bitmap *load_bitmap(const char *filename) {
 
    // Copy data into the bitmap object
    uint8_t *dest = ptr->data;
-   for (int y = 0; y < height; y++) {
-      const uint8_t *src = rows[y];
-      for (int x = 0; x < width; x++)
-         *dest++ = *src++;
+   switch (type) {
+      // Paletted
+      case PNG_COLOR_TYPE_PALETTE:
+         for (int y = 0; y < height; y++) {
+            const uint8_t *src = rows[y];
+            for (int x = 0; x < width; x++)
+               *dest++ = *src++;
+         }
+         break;
+
+      // Grayscale
+      case PNG_COLOR_TYPE_GRAY:
+         for (int y = 0; y < height; y++) {
+            const uint8_t *src = rows[y];
+            for (int x = 0; x < width; x++) {
+               uint8_t val = *src++ >> 5;
+               *dest++ = pal_table[val << 6 | val << 3 | val];
+            }
+         }
+         break;
+
+      // True color
+      case PNG_COLOR_TYPE_RGB:
+         for (int y = 0; y < height; y++) {
+            const uint8_t *src = rows[y];
+            for (int x = 0; x < width; x++) {
+               uint16_t r = (*src++ & 0xF8) >> 3;
+               uint16_t g = (*src++ & 0xF8) << 2;
+               uint16_t b = (*src++ & 0xF8) << 7;
+               *dest++ = pal_table[b|g|r];
+            }
+         }
+         break;
    }
 
    // Success!

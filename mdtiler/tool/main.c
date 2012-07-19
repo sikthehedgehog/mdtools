@@ -41,6 +41,13 @@ typedef enum {
    ACTION_TOOMANY       // Too many actions specified
 } Action;
 
+// Default palette when no palette is given
+// Bonus points to whoever can tell where this palette is from
+static const uint16_t default_pal[] = {
+   0x000, 0xA00, 0x0A0, 0xAA0, 0x00A, 0xA0A, 0x06A, 0xAAA,
+   0x666, 0xE66, 0x6E6, 0xEE6, 0x66E, 0xE6E, 0x6EE, 0xEEE
+};
+
 // Function prototypes
 int build_tilemap(const char *, const char *);
 int build_sprite(const char *, const char *);
@@ -50,6 +57,9 @@ int build_sprite(const char *, const char *);
 //***************************************************************************
 
 int main(int argc, char **argv) {
+   // Set default palette
+   set_palette(default_pal);
+
    // To know if there was an error or not
    int errcode = 0;
 
@@ -160,7 +170,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.2");
+      puts("1.3");
       return EXIT_SUCCESS;
    }
 

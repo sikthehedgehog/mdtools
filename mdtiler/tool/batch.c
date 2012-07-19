@@ -47,6 +47,7 @@ static int read_line(FILE *, char **);
 static int split_tokens(const char *, TokenList *);
 static void free_tokens(TokenList *);
 static void print_error_line(size_t);
+static int is_color(const char *);
 
 //***************************************************************************
 // build_batch
@@ -188,6 +189,53 @@ int build_batch(const char *infilename) {
                   filename);
                failed = 1;
             }
+         }
+      }
+
+      // Set palette?
+      else if (!strcmp(command, "palette")) {
+         // Check number of arguments
+         if (num_args != 17) {
+            // Determine error message
+            const char *msg;
+            if (num_args == 1)
+               msg = "no colors specified\n";
+            else if (num_args > 17)
+               msg = "too many parameters\n";
+            else if (num_args == 16)
+               msg = "1 color missing\n";
+            else
+               msg = "%d colors missing\n";
+
+            // Show message on screen
+            print_error_line(curr_line);
+            fprintf(stderr, msg, 17 - num_args);
+            failed = 1;
+         }
+
+         // Parse palette
+         else {
+            // Where we store the palette
+            uint16_t palette[0x10];
+
+            // Read entire palette
+            for (unsigned i = 0; i < 0x10; i++) {
+               // Get token for this entry
+               const char *arg = args.tokens[i + 1];
+
+               // Check that it's a valid color value
+               if (!is_color(arg)) {
+                  print_error_line(curr_line);
+                  fprintf(stderr, "\"%s\" is not a valid color\n", arg);
+                  failed = 1;
+               }
+
+               // Parse value
+               palette[i] = strtoul(arg, NULL, 0x10);
+            }
+
+            // Set new palette
+            set_palette(palette);
          }
       }
 
@@ -603,5 +651,30 @@ static void free_tokens(TokenList *list) {
 //***************************************************************************
 
 static void print_error_line(size_t line) {
-   fprintf(stderr, "Error [%zu]: ", line + 1);
+   fprintf(stderr, "Error [%zu]: ", line);
+}
+
+//***************************************************************************
+// is_color
+// Checks if a string is a valid Mega Drive color value
+//---------------------------------------------------------------------------
+// return: non-zero if valid, zero if not valid
+//***************************************************************************
+
+static int is_color(const char *str) {
+   // Allowed characters
+   static const char *valid = "02468ACEace";
+
+   // Check that it only consists of valid characters
+   for (unsigned i = 0; i < 3; i++) {
+      if (strchr(valid, *str) == NULL)
+         return 0;
+   }
+
+   // Colors are always three characters long
+   if (str[3] != '\0')
+      return 0;
+
+   // Valid color!
+   return 1;
 }
