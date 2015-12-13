@@ -1,0 +1,28 @@
+ _____ _ _____
+|  ___| |  ___|
+| |__ | | |__
+|  __|| |  __|
+| |___| | |
+|_____|_|_|
+
+EIF stands for "Echo Instrument Format" and it's the format in which Echo
+expects the FM instruments.
+
+EIF is a pretty compact format and is essentially a raw "dump" of the YM2612
+registers. An instrument is 29 bytes long, where each byte represents a
+different register.
+
+The following YM2612 registers are stored, in the this order:
+
+   $B0,
+   $30, $34, $38, $3C,
+   $40, $44, $48, $4C,
+   $50, $54, $58, $5C,
+   $60, $64, $68, $6C,
+   $70, $74, $78, $7C,
+   $80, $84, $88, $8C,
+   $90, $94, $98, $9C
+
+Please see the YM2612 documentation for the format of each register. The
+registers above assume the first FM channel, change as needed for whatever
+channel you're using.
