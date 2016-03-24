@@ -3,7 +3,7 @@
 // Program entry point, parses command line and runs stuff as required
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012 Javier Degirolmo
+// Copyright 2011, 2012, 2016 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.3");
+      puts("1.4");
       return EXIT_SUCCESS;
    }
 
@@ -228,6 +228,9 @@ int main(int argc, char **argv) {
          case ERR_OPENBATCH: msg = "can't open batch file"; break;
          case ERR_CANTREAD: msg = "can't read batch file"; break;
          case ERR_CANTWRITE: msg = "can't write to output file"; break;
+         case ERR_CANTWRITEGFX: msg = "can't write to tiles file"; break;
+         case ERR_CANTWRITEMAP: msg = "can't write to mappings file"; break;
+         case ERR_MANYTILES: msg = "too many unique tiles"; break;
          case ERR_NOMEMORY: msg = "ran out of memory"; break;
          case ERR_PARSE: msg = "unable to process batch file"; break;
          default: msg = "unknown error"; break;

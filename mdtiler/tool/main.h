@@ -32,6 +32,9 @@ enum {
    ERR_OPENBATCH,       // Can't open batch file
    ERR_CANTREAD,        // Can't read from batch file
    ERR_CANTWRITE,       // Can't write to output file
+   ERR_CANTWRITEGFX,    // Can't write to output file (tiles)
+   ERR_CANTWRITEMAP,    // Can't write to output file (mappings)
+   ERR_MANYTILES,       // Too many unique tiles
    ERR_NOMEMORY,        // Ran out of memory
    ERR_PARSE,           // Parsing error
    ERR_BADQUOTE,        // Quote inside non-quoted token

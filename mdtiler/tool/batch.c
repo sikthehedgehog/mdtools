@@ -3,7 +3,7 @@
 // Batch file processing
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012 Javier Degirolmo
+// Copyright 2011, 2012, 2016 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -29,6 +29,7 @@
 #include "main.h"
 #include "bitmap.h"
 #include "tiles.h"
+#include "map.h"
 
 // Possible layout formats
 typedef enum {
@@ -47,7 +48,9 @@ static int read_line(FILE *, char **);
 static int split_tokens(const char *, TokenList *);
 static void free_tokens(TokenList *);
 static void print_error_line(size_t);
+static int is_integer(const char *);
 static int is_color(const char *);
+static unsigned string_to_integer(const char *);
 
 //***************************************************************************
 // build_batch
@@ -71,7 +74,7 @@ int build_batch(const char *infilename) {
 
    // Current state
    Bitmap *in = NULL;                  // Input bitmap
-   FILE *out = NULL;                   // Output blob
+   FILE *out[2] = { NULL, NULL };      // Output blobs
    Layout layout = LAYOUT_TILEMAP;     // Tile ordering
 
    // Go through all lines
@@ -157,8 +160,8 @@ int build_batch(const char *infilename) {
          }
       }
 
-      // Set output file?
-      else if (!strcmp(command, "output")) {
+      // Set main output files?
+      else if (!strcmp(command, "output") || !strcmp(command, "output2")) {
          // Check number of arguments
          if (num_args != 2) {
             // Determine error message
@@ -174,16 +177,20 @@ int build_batch(const char *infilename) {
 
          // Set output file if arguments are valid
          else {
+            // Determine which output file to mess with
+            // Yeah, this looks hackish XD but it's correct
+            int which = (command[6] == '2') ? 1 : 0;
+
             // Close old file if needed
-            if (out != NULL)
-               fclose(out);
+            if (out[which] != NULL)
+               fclose(out[which]);
 
             // Attempt to open output file
             const char *filename = args.tokens[1];
-            out = fopen(filename, "wb");
+            out[which] = fopen(filename, "wb");
 
             // Oops?
-            if (out == NULL) {
+            if (out[which] == NULL) {
                print_error_line(curr_line);
                fprintf(stderr, "can't open output bitmap \"%s\"\n",
                   filename);
@@ -337,7 +344,7 @@ int build_batch(const char *infilename) {
          }
 
          // Make sure there's a file to write into...
-         else if (out == NULL) {
+         else if (out[0] == NULL) {
             print_error_line(curr_line);
             fputs("no output file to write into\n", stderr);
             failed = 1;
@@ -348,35 +355,124 @@ int build_batch(const char *infilename) {
             // Retrieve parameters
             // To-do: check that they're indeed integers, but for now it
             // isn't much of an issue because at worst atoi will return 0
-            int x = atoi(args.tokens[1]) << 3;
-            int y = atoi(args.tokens[2]) << 3;
-            int width = atoi(args.tokens[3]);
-            int height = atoi(args.tokens[4]);
+            int x = string_to_integer(args.tokens[1]) << 3;
+            int y = string_to_integer(args.tokens[2]) << 3;
+            int width = string_to_integer(args.tokens[3]);
+            int height = string_to_integer(args.tokens[4]);
 
             // Process tiles and write them in the output file
             switch (layout) {
                // Tilemap ordering
                case LAYOUT_TILEMAP:
-                  errcode = write_tilemap(in, out, x, y, width, height);
+                  errcode = write_tilemap(in, out[0], x, y, width, height);
                   break;
 
                // Sprite ordering
                case LAYOUT_SPRITE:
-                  errcode = write_sprite(in, out, x, y, width, height);
+                  errcode = write_sprite(in, out[0], x, y, width, height);
                   break;
             }
 
             // Gah!
             if (errcode) {
-               // Deallocate everything
-               if (in) destroy_bitmap(in);
-               if (out) fclose(out);
                free_tokens(&args);
-               fclose(file);
-
-               // Panic and quit!
-               return errcode;
+               goto panic;
             }
+         }
+      }
+
+      // Generate map?
+      else if (!strcmp(command, "map")) {
+         // Check number of arguments
+         if (num_args != 5) {
+            // Determine error message
+            const char *msg;
+            switch (num_args) {
+               case 1: msg = "missing coordinates and dimensions\n"; break;
+               case 2: msg = "missing Y coordinate and dimensions\n"; break;
+               case 3: msg = "missing dimensions\n"; break;
+               case 4: msg = "missing height\n"; break;
+               default: msg = "too many parameters\n"; break;
+            }
+
+            // Show message on screen
+            print_error_line(curr_line);
+            fputs(msg, stderr);
+            failed = 1;
+         }
+
+         // Make sure there's a bitmap to read from...
+         else if (in == NULL) {
+            print_error_line(curr_line);
+            fputs("no input file to read from\n", stderr);
+            failed = 1;
+         }
+
+         // Make sure there's a file to write tiles into...
+         else if (out[0] == NULL) {
+            print_error_line(curr_line);
+            fputs("no output file to write tiles\n", stderr);
+            failed = 1;
+         }
+
+         // Make sure there's a file to write mappings into...
+         else if (out[1] == NULL) {
+            print_error_line(curr_line);
+            fputs("no output file to write mappings\n", stderr);
+            failed = 1;
+         }
+
+         // Everything is seemingly OK, process command
+         else {
+            // Retrieve parameters
+            // To-do: check that they're indeed integers, but for now it
+            // isn't much of an issue because at worst atoi will return 0
+            int x = string_to_integer(args.tokens[1]) << 3;
+            int y = string_to_integer(args.tokens[2]) << 3;
+            int width = string_to_integer(args.tokens[3]);
+            int height = string_to_integer(args.tokens[4]);
+
+            // Generate map
+            errcode = generate_map(in, out[0], out[1], x, y, width, height,
+               layout == LAYOUT_SPRITE);
+
+            // Gah!
+            if (errcode) {
+               free_tokens(&args);
+               goto panic;
+            }
+         }
+      }
+
+      // Set offset for map?
+      else if (!strcmp(command, "offset")) {
+         // Check number of arguments
+         if (num_args != 2) {
+            // Determine error message
+            const char *msg;
+            switch (num_args) {
+               case 1: msg = "missing offset\n"; break;
+               default: msg = "too many parameters\n"; break;
+            }
+
+            // Show message on screen
+            print_error_line(curr_line);
+            fputs(msg, stderr);
+            failed = 1;
+         }
+
+         // Check that the offset is indeed an integer
+         if (!failed) {
+            if (!is_integer(args.tokens[1])) {
+               print_error_line(curr_line);
+               fputs("offset must be an integer\n", stderr);
+               failed = 1;
+            }
+         }
+
+         // All OK, set new offset
+         if (!failed) {
+            set_map_offset(string_to_integer(args.tokens[1]));
          }
       }
 
@@ -393,11 +489,20 @@ int build_batch(const char *infilename) {
 
    // Done with the resources
    if (in) destroy_bitmap(in);
-   if (out) fclose(out);
+   if (out[0]) fclose(out[0]);
+   if (out[1]) fclose(out[1]);
 
    // We're done
    fclose(file);
    return failed ? ERR_PARSE : ERR_NONE;
+
+   // If we get here then something went SERIOUSLY wrong
+panic:
+   if (in) destroy_bitmap(in);
+   if (out[0]) fclose(out[0]);
+   if (out[1]) fclose(out[1]);
+   fclose(file);
+   return errcode;
 }
 
 //***************************************************************************
@@ -655,13 +760,54 @@ static void print_error_line(size_t line) {
 }
 
 //***************************************************************************
+// is_integer
+// Checks if a string is a valid integer value
+//---------------------------------------------------------------------------
+// param str: string to check
+// return: non-zero if valid, zero if not valid
+//***************************************************************************
+
+static int is_integer(const char *str) {
+   // Er...
+   if (str == NULL)
+      return 0;
+   if (*str == '\0')
+      return 0;
+
+   // Determine which characters are allowed
+   const char *allowed;
+   if (*str == '$') {
+      allowed = "0123456789ABCDEFabcdef";
+      str++;
+   } else {
+      allowed = "0123456789";
+   }
+
+   // Check that only allowed characters are inside
+   for (; *str != '\0'; str++) {
+      if (strchr(allowed, *str) == NULL)
+         return 0;
+   }
+
+   // Valid integer!
+   return 1;
+}
+
+//***************************************************************************
 // is_color
 // Checks if a string is a valid Mega Drive color value
 //---------------------------------------------------------------------------
+// param str: string to check
 // return: non-zero if valid, zero if not valid
 //***************************************************************************
 
 static int is_color(const char *str) {
+   // Er...
+   if (str == NULL)
+      return 0;
+   if (*str == '\0')
+      return 0;
+
    // Allowed characters
    static const char *valid = "02468ACEace";
 
@@ -677,4 +823,25 @@ static int is_color(const char *str) {
 
    // Valid color!
    return 1;
+}
+
+//***************************************************************************
+// string_to_integer
+// Converts a string into an integer. Handles both decimal and hexadecimal.
+//---------------------------------------------------------------------------
+// param str: string to convert
+// return: integer value in string
+//***************************************************************************
+
+static unsigned string_to_integer(const char *str) {
+   // Hexadecimal?
+   if (*str == '$') {
+      str++;
+      return strtoul(str, NULL, 16);
+   }
+
+   // Decimal?
+   else {
+      return strtoul(str, NULL, 10);
+   }
 }

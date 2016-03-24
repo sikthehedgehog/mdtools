@@ -3,7 +3,7 @@
 // Tile fetching stuff
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012 Javier Degirolmo
+// Copyright 2011, 2012, 2015 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -35,6 +35,55 @@ typedef int TileFunc(const Bitmap *, FILE *, int, int);
 static Format format = FORMAT_4BPP;
 
 //***************************************************************************
+// get_tile
+// Retrieves the contents of a tile. Format is always 4bpp.
+//---------------------------------------------------------------------------
+// param in: input bitmap
+// param out: where to store data
+// param xr: base X coordinate (leftmost pixel of tile)
+// param yr: base Y coordinate (topmost pixel of tile)
+//***************************************************************************
+
+void get_tile(const Bitmap *in, Tile *out, int bx, int by) {
+   // To keep track of the flags (palette and priority)
+   uint8_t flags = 0;
+
+   // Scan all rows
+   for (int y = 0; y < 8; y++) {
+      // To store the pixels as we fetch them
+      uint32_t normal = 0;    // Left to right
+      uint32_t flipped = 0;   // Right to left
+
+      // Retrieve pixels of this row
+      for (int x = 0; x < 8; x++) {
+         uint8_t pixel = get_pixel(in, bx + x, by + y);
+         flags |= pixel >> 4 & 0x07;
+         pixel &= 0x0F;
+         normal = normal << 4 | pixel;
+         flipped = flipped >> 4 | pixel << 28;
+      }
+
+      // Store rows in tile data
+      out->normal[y] = normal;
+      out->flipped[y] = flipped;
+   }
+
+   // Store flags
+   out->flags = flags;
+}
+
+//***************************************************************************
+// get_output_format
+// Retrieves what's the current output format for tiles
+//---------------------------------------------------------------------------
+// return: current format
+//***************************************************************************
+
+Format get_output_format(void) {
+   return format;
+}
+
+//***************************************************************************
 // set_output_format
 // Changes the output format for tiles
 //---------------------------------------------------------------------------
@@ -46,17 +95,17 @@ void set_output_format(Format value) {
 }
 
 //***************************************************************************
-// fetch_tile_1bpp
-// Reads a tile from the bitmap and outputs a 1bpp tile
+// write_tile_1bpp
+// Takes a tile from the bitmap and outputs a 1bpp tile
 //---------------------------------------------------------------------------
 // param in: input bitmap
 // param out: output file
-// param xr: base X coordinate (rightmost pixel of tile)
+// param xr: base X coordinate (leftmost pixel of tile)
 // param yr: base Y coordinate (topmost pixel of tile)
 // return: error code
 //***************************************************************************
 
-static int fetch_tile_1bpp(const Bitmap *in, FILE *out, int bx, int by)
+static int write_tile_1bpp(const Bitmap *in, FILE *out, int bx, int by)
 {
    // To store the tile data
    uint8_t data[8];
@@ -81,17 +130,17 @@ static int fetch_tile_1bpp(const Bitmap *in, FILE *out, int bx, int by)
 }
 
 //***************************************************************************
-// fetch_tile_4bpp
-// Reads a tile from the bitmap and outputs a 4bpp tile
+// write_tile_4bpp
+// Takes a tile from the bitmap and outputs a 4bpp tile
 //---------------------------------------------------------------------------
 // param in: input bitmap
 // param out: output file
-// param xr: base X coordinate (rightmost pixel of tile)
+// param xr: base X coordinate (leftmost pixel of tile)
 // param yr: base Y coordinate (topmost pixel of tile)
 // return: error code
 //***************************************************************************
 
-static int fetch_tile_4bpp(const Bitmap *in, FILE *out, int bx, int by)
+static int write_tile_4bpp(const Bitmap *in, FILE *out, int bx, int by)
 {
    // To store the tile data
    uint8_t data[32];
@@ -113,8 +162,8 @@ static int fetch_tile_4bpp(const Bitmap *in, FILE *out, int bx, int by)
 }
 
 //***************************************************************************
-// fetch_tile_error
-// Tile fetching function to use if there was an error with the format
+// write_tile_error
+// Tile writing function to use if there was an error with the format
 //---------------------------------------------------------------------------
 // param in: (ignored)
 // param out: (ignored)
@@ -123,7 +172,7 @@ static int fetch_tile_4bpp(const Bitmap *in, FILE *out, int bx, int by)
 // return: ERR_UNKNOWN
 //***************************************************************************
 
-static int fetch_tile_error(const Bitmap *in, FILE *out, int bx, int by)
+static int write_tile_error(const Bitmap *in, FILE *out, int bx, int by)
 {
    // To shut up the compiler
    (void) in;
@@ -136,19 +185,19 @@ static int fetch_tile_error(const Bitmap *in, FILE *out, int bx, int by)
 }
 
 //***************************************************************************
-// get_tile_func
-// Returns which function to use to read tiles in the current format
+// get_write_func
+// Returns which function to use to write tiles in the current format
 //---------------------------------------------------------------------------
 // return: pointer to function
 //***************************************************************************
 
-static inline TileFunc *get_tile_func(void) {
+static inline TileFunc *get_write_func(void) {
    // Return the adequate function for this format
-   // fetch_tile_error is used if there's a bug in the program...
+   // write_tile_error is used if there's a bug in the program...
    switch (format) {
-      case FORMAT_4BPP: return fetch_tile_4bpp;
-      case FORMAT_1BPP: return fetch_tile_1bpp;
-      default: return fetch_tile_error;
+      case FORMAT_4BPP: return write_tile_4bpp;
+      case FORMAT_1BPP: return write_tile_1bpp;
+      default: return write_tile_error;
    }
 }
 
@@ -158,7 +207,7 @@ static inline TileFunc *get_tile_func(void) {
 //---------------------------------------------------------------------------
 // param in: input bitmap
 // param out: output file
-// param xr: base X coordinate (rightmost pixel of tile)
+// param xr: base X coordinate (leftmost pixel of tile)
 // param yr: base Y coordinate (topmost pixel of tile)
 // param width: width in tiles
 // param height: height in tiles
@@ -168,7 +217,7 @@ static inline TileFunc *get_tile_func(void) {
 int write_tilemap(const Bitmap *in, FILE *out, int bx, int by,
 int width, int height) {
    // Determine function we're going to use to fetch tiles
-   TileFunc *func = get_tile_func();
+   TileFunc *func = get_write_func();
 
    // Traverse through all tiles in tilemap ordering
    // (left-to-right, then top-to-bottom)
@@ -198,7 +247,7 @@ int width, int height) {
 int write_sprite(const Bitmap *in, FILE *out, int bx, int by,
 int width, int height) {
    // Determine function we're going to use to fetch tiles
-   TileFunc *func = get_tile_func();
+   TileFunc *func = get_write_func();
 
    // Sprites are at most 4 tiles high, so split sprites into strips that
    // have at most that length

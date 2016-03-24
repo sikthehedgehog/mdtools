@@ -5,8 +5,8 @@
 | | | | | | |_| | | | | | |___| |___| |\ \
 |_| |_| |_|____/  |_| |_|_____|_____|_| \_\
 
-mdtiler version 1.3
-©2011,2012 Sik the hedgehog
+mdtiler version 1.4
+©2011, 2012, 2016 Sik
 
 mdtiler is a command line tool to convert images into tiles that can be used
 in Mega Drive software. It provides a quick build mode that will just convert
@@ -20,8 +20,7 @@ for more details, or check http://www.gnu.org/licenses/gpl-3.0.txt
 In order to build the current version of mdtiler you will need the following
 libraries:
 
-   - libpng
-   - zlib
+   - libpng (depends on zlib)
 
 -----------------------------------------------------------------------------
 
@@ -84,6 +83,11 @@ The available commands are as follows (where «» specify parameters):
       "this name has spaces"). Quotes are optional if there aren't spaces
       (e.g. thisisaname or "thisisaname").
    
+   output2 «filename»
+   
+      Secondary output file, used by the map command (see below). The tilemap
+      will be written to this file.
+   
    palette «color1» «color2» «color3» ... «color16»
    
       TRUE COLOR BITMAPS ONLY: tells mdtiler which palette to use. 16 colors
@@ -93,7 +97,7 @@ The available commands are as follows (where «» specify parameters):
       
       For performance reasons, the palette is applied only when the bitmap is
       loaded (i.e. when the "input" command is issued). If you want to apply
-      a new palette make sure that the bitmap is loaded after this.
+      a new palette make sure that the bitmap is loaded again after this.
       
       This command does nothing for paletted bitmaps, in which case mdtiler
       will use the color indices directly.
@@ -107,6 +111,22 @@ The available commands are as follows (where «» specify parameters):
       
       If you just want to read individual tiles, you can just pass 1 as
       both width and height.
+   
+   map «x» «y» «width» «height»
+   
+      Takes a block of tiles and generates a tilemap. The tiles will be
+      written to the main output file (see output) and the tilemap itself
+      will be written to the secondary output file (see output2). This tool
+      will look for redundant tiles (flipping, same but other palette, etc.)
+      
+      The tilemap consists of a word for each tile, starting from $0000. Each
+      word can include flipping, palette and priority flags. To have mdtiler
+      proces palette and priority, you must use an 8bpp PNG (256 colors) then
+      arrange colors as follows:
+      
+         - Every 16 colors is a different palette row
+         - The first 64 colors are low priority
+         - The next 64 colors are high priority
    
    layout tilemap
    
