@@ -121,6 +121,13 @@ allowed for timing purposes: r, l)
       It may also be followed by a comma and the length, otherwise the
       default length will be used.
    
+   &
+   
+      Ties to the next note or rest. What this means is that the next time
+      a note/rest is found, the event won't be inserted and only the length
+      is used. This is normally used to stretch lengths by non-half amounts
+      (e.g. c4&r16 will make the C note to play for 5/16th).
+   
    v
    
       Followed by a number between 0 and 15, sets the volume of the channel
