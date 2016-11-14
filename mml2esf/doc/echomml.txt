@@ -1,0 +1,179 @@
+ _____ _____ _   _ _____ ____ ____ ____ ____ _
+|  ___|  _  | | | |  _  |  _ ' _  |  _ ' _  | |
+| |__ | | |_| |_| | | | | | | | | | | | | | | |
+|  __|| |  _|  _  | | | | | | | | | | | | | | |
+| |___| |_| | | | | |_| | | | | | | | | | | | |___
+|_____|_____|_| |_|_____|_| |_| |_|_| |_| |_|_____|
+
+This document describes the MML variant used by mml2esf. This variant is
+unique to this tool and geared towards the way Echo works. This document
+assumes you already have an idea of how MML works so I won't explain that.
+
+-----------------------------------------------------------------------------
+
+*** Macros ***
+
+Macros work as usual for MML. There can be up to 52 macros (from !A to !Z
+and from !a to !z), though they can be redefined at any time. More
+importantly, there's no length limit for them other than how much RAM you
+have available (same goes for sequences in general).
+
+-----------------------------------------------------------------------------
+
+*** Channels ***
+
+   Z ... Control channel (see below)
+   
+   A ... FM channel 1
+   B ... FM channel 2
+   C ... FM channel 3
+   D ... FM channel 4
+   E ... FM channel 5
+   F ... FM channel 6
+   
+   G ... PSG channel 1 (square)
+   H ... PSG channel 2 (square)
+   I ... PSG channel 3 (square)
+   J ... PSG channel 4 (noise)
+   
+   K ... PCM channel (overrides FM6)
+
+The control channel (Z) doesn't correspond to any sound channel, and can't
+take most commands. It's main purpose is to give a place to global commands
+(e.g. tempo or loop point) so they don't have to be shoehorned into one of
+the sound channels. In other words, to keep it cleaner.
+
+Multiple channels can be grouped together *as long as they're the same type*
+(i.e. ABCDEF, GHI). This is because some commands are not supported or behave
+differently when different types of channels are involved.
+
+Echo's behavior for channels apply as usual. You can get PSG3+PSG4 behavior
+by playing the relevant notes on both channels at the same time. PCM channel
+will override FM6 whenever it's playing any sample. Sound effects will also
+override the channels they lock.
+
+-----------------------------------------------------------------------------
+
+*** Commands ***
+
+Most of these commands can't be used from the control channel (exceptions
+allowed for timing purposes: r, l)
+
+   @
+   
+      Followed by a number between 0 and 255, sets the instrument of the
+      channel (takes effect immediately). The number must match the
+      instrument ID in the Echo instrument list.
+   
+   c d e f g a b
+   
+      Inserts the respective note. They may be optionally followed by a
+      length, otherwise they'll use the default length. On the PCM channel,
+      they just play the current instrument whatever it is. Not valid for the
+      noise channel.
+      
+      The letter may be followed by + or - to shift it up or down by a
+      semitone (e.g. C sharp would be c+). In this case the length must
+      appear *after* this sign.
+   
+   r
+   
+      Inserts a rest. Same as notes otherwise.
+   
+   l
+   
+      Followed by a length value, sets the default length for following notes
+      in this channel, i.e. the length they'll have if one isn't specified
+      explicitly.
+   
+   o
+   
+      Followed by a number, sets the current octave of the channel (takes
+      effect on the next note). Valid octaves are 0 to 7 for FM channels,
+      2 to 7 for PSG channels. Not valid for the noise or PCM channels.
+   
+   < >
+   
+      Decrease or increase the octave by 1, respectively.
+   
+   n
+   
+      Followed by a number, plays a note. The range for the number depends
+      on the channel (this is the only way to play notes on the noise
+      channel, by the way):
+      
+         ABCDEF: 0 to 95 (o0c to o7a)
+         GHI:    0 to 71 (o2c to o7a)
+         J:      0 to 7 (see below)
+         K:      0 to 255 (instrument ID)
+      
+      The values for J are as follows:
+      
+         0 = periodic noise, low pitch
+         1 = periodic noise, medium pitch
+         2 = periodic noise, high pitch
+         3 = periodic noise, pitch from PSG3
+         4 = white noise, low pitch
+         5 = white noise, medium pitch
+         6 = white noise, high pitch
+         7 = white noise, pitch from PSG3
+      
+      It may also be followed by a comma and the length, otherwise the
+      default length will be used.
+   
+   v
+   
+      Followed by a number between 0 and 15, sets the volume of the channel
+      (0 = mute, 15 = loudest). Takes effect immediately. Not usable on the
+      PCM channel.
+   
+   ( )
+   
+      Decrease or increase the volume by 1, respectively.
+   
+   p
+   
+      Followed by a number between 0 and 3, changes the panning of the
+      channel (only valid for FM channels). The possible values are:
+      
+      0 = muted
+      1 = right speaker only
+      2 = left speaker only
+      3 = both speakers
+   
+   K
+   
+      Followed by a number, transposes all following notes in this channel
+      by the given amount of semitones. Use K0 to restore normal behavior.
+
+The following commands can be used in any channel but take effect globally so
+it's suggested they're only used from the control channel:
+
+   L
+   
+      Sets the looping point for the stream. Once all channels are done
+      playing the stream will loop back here. If this command is never issued
+      then the stream will not loop.
+   
+   t
+   
+      Followed by a number, sets the tempo of the stream from here onwards
+      (normally you'd set it at the beginning). NOTE THAT THE LARGER THE
+      VALUE, THE SLOWER IS THE STREAM (unlike most MML variants).
+      
+      Measured in the amount of Echo ticks it'd take for a whole note
+      (i.e. 1/1) to play. One Echo tick = 1/60th of a second. Default tempo
+      is 128 (32 ticks per quarter).
+
+-----------------------------------------------------------------------------
+
+*** To-do ***
+
+   - Provide a way to make it usable to compose sound effects
+   - Implement the [...] command for repeating sequences
+   - Implement the {...} command to allow slides
+   - Ignore whitespace in the middle of a sequence (recheck if already done?)
+   - Implement ; for comments
+   
+   Note that lines starting with # are ignored. These are meant for metadata
+   but currently mml2esf doesn't support any sort of tagging.
