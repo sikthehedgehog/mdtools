@@ -902,6 +902,11 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          add_set_tempo(chanstat[channel].timestamp, tempo);
       }
 
+      // Whitespace? (skip it)
+      else if (*data == ' ' || (*data >= 0x08 && *data <= 0x0D)) {
+         data++;
+      }
+
       // Unknown or unimplemented command
       else {
          fprintf(stderr, "Error[%u]: invalid command \"%c\"\n", line, *data);

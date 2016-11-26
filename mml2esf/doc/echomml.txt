@@ -67,7 +67,9 @@ override the channels they lock.
 *** Commands ***
 
 Most of these commands can't be used from the control channel (exceptions
-allowed for timing purposes: r, l)
+allowed for timing purposes: r, l). There may be spaces between commands for
+the sake of making it easier to read (they'll be ignored), though you can't
+put spaces *in the middle* of a command.
 
    @
    
@@ -189,7 +191,6 @@ it's suggested they're only used from the control channel:
    - Provide a way to make it usable to compose sound effects
    - Implement the [...] command for repeating sequences
    - Implement the {...} command to allow slides
-   - Ignore whitespace in the middle of a sequence (recheck if already done?)
    
    Note that lines starting with # are ignored. These are meant for metadata
    but currently mml2esf doesn't support any sort of tagging.
