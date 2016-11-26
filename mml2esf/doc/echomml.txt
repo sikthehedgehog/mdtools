@@ -160,10 +160,14 @@ put spaces *in the middle* of a command.
       2 = left speaker only
       3 = both speakers
    
-   K
+   K k
    
       Followed by a number, transposes all following notes in this channel
       by the given amount of semitones. Use K0 to restore normal behavior.
+      
+      Using K will set the transpose directly (regardless of what it was),
+      while using k will shift the transpose relative to the current one
+      (e.g. K0k2k2k2 would be the same as K6).
 
 The following commands can be used in any channel but take effect globally so
 it's suggested they're only used from the control channel:

@@ -751,9 +751,10 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
       }
 
       // Set transpose?
-      else if (*data == 'K') {
+      else if (*data == 'K' || *data == 'k') {
          // Control channel shouldn't get octave commands...
          if (channel == 0x10) goto noctrl;
+         int relative = (*data == 'k');
          data++;
 
          // The transpose command *can* accept negative values
@@ -772,7 +773,10 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          }
 
          // Change transpose
-         chanstat[channel].transpose = sign ? -transpose : transpose;
+         if (relative)
+            chanstat[channel].transpose += sign ? -transpose : transpose;
+         else
+            chanstat[channel].transpose = sign ? -transpose : transpose;
       }
 
       // Set default length?
