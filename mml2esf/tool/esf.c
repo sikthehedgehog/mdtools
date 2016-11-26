@@ -11,6 +11,7 @@ static int emit_note_off(FILE *, unsigned);
 static int emit_set_volume(FILE *, unsigned, unsigned);
 static int emit_set_panning(FILE *, unsigned, unsigned);
 static int emit_set_instr(FILE *, unsigned, unsigned);
+static int emit_lock(FILE *, unsigned);
 static int emit_loop(FILE *);
 
 //***************************************************************************
@@ -89,6 +90,9 @@ int generate_esf(const char *filename)
             break;
          case EV_SETINSTR:
             if (emit_set_instr(file, ev->channel, ev->value)) goto error;
+            break;
+         case EV_LOCK:
+            if (emit_lock(file, ev->channel)) goto error;
             break;
          case EV_LOOP:
             if (emit_loop(file)) goto error;
@@ -241,6 +245,21 @@ static int emit_set_instr(FILE *file, unsigned channel, unsigned instrument)
 {
    // Emit bytes
    return write_two(file, 0x40 | channel, instrument);
+}
+
+//***************************************************************************
+// emit_lock [internal]
+// Generates a lock event on the ESF file.
+//---------------------------------------------------------------------------
+// param file: file handle
+// param channel: affected channel
+// return: 0 on success, -1 on failure
+//***************************************************************************
+
+static int emit_lock(FILE *file, unsigned channel)
+{
+   // Emit byte
+   return write_one(file, 0xE0 | channel);
 }
 
 //***************************************************************************

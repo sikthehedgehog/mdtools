@@ -887,6 +887,13 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          if (channel == 0x10) goto noctrl;
          data++;
 
+         // Check for special @$ command
+         if (*data == '$') {
+            data++;
+            add_lock(chanstat[channel].timestamp, channel);
+            continue;
+         }
+
          // Get instrument number
          int instrument = parse_number(&data);
          if (instrument == -1) {

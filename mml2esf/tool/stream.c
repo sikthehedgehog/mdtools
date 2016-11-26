@@ -141,6 +141,19 @@ void add_set_instr(uint64_t timestamp, unsigned channel, unsigned instrument)
 }
 
 //***************************************************************************
+// add_lock
+// Adds a lock channel event to the stream.
+//---------------------------------------------------------------------------
+// param timestamp: event timestamp
+// param channel: affected channel
+//***************************************************************************
+
+void add_lock(uint64_t timestamp, unsigned channel)
+{
+   alloc_event(timestamp, channel, EV_LOCK, 0);
+}
+
+//***************************************************************************
 // add_loop
 // Adds a loop point event to the stream.
 //---------------------------------------------------------------------------
