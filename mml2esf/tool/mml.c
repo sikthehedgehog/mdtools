@@ -989,6 +989,17 @@ static int parse_length(const char **ptrptr, unsigned line)
       (*ptrptr)++;
    }
 
+   // Tie? (add multiple lengths)
+   if (**ptrptr == '^') {
+      (*ptrptr)++;
+      int extra = parse_length(ptrptr, line);
+      if (extra <= 0) {
+         fprintf(stderr, "Error[%u]: invalid length tie\n", line);
+         return -1;
+      }
+      length += extra;
+   }
+
    // Done
    return length;
 }
