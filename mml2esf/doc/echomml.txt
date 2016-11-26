@@ -199,5 +199,6 @@ it's suggested they're only used from the control channel:
 *** To-do ***
 
    - Provide a way to make it usable to compose sound effects
+     - There's an undocumented @$ command, gotta confirm if it stays yet
    - Implement the [...] command for repeating sequences
    - Implement the {...} command to allow slides
