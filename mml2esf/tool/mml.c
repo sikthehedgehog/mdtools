@@ -822,11 +822,31 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          if (channel == 0x10) goto noctrl;
          data++;
 
+         // Check if it's relative
+         int sign = 0;
+         if (*data == '+') {
+            sign = 1;
+            data++;
+         } else if (*data == '-') {
+            sign = -1;
+            data++;
+         }
+
          // Get volume
          int volume = parse_number(&data);
          if (volume == -1) {
             fprintf(stderr, "Error[%u]: missing new volume\n", line);
             return -1;
+         }
+         switch (sign) {
+            case 0:
+               break;
+            case 1:
+               volume = chanstat[channel].volume + volume;
+               break;
+            case -1:
+               volume = chanstat[channel].volume - volume;
+               break;
          }
          if (volume < 0 || volume > 15) {
             fprintf(stderr, "Error[%u]: invalid volume value\n", line);
@@ -907,8 +927,13 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
       }
 
       // Whitespace? (skip it)
-      else if (*data == ' ' || (*data >= 0x08 && *data <= 0x0D)) {
+      else if (is_whitespace(*data)) {
          data++;
+      }
+
+      // Comment?
+      else if (*data == ';') {
+         break;
       }
 
       // Unknown or unimplemented command

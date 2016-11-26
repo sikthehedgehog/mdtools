@@ -150,6 +150,12 @@ put spaces *in the middle* of a command.
    
       Decrease or increase the volume by 1, respectively.
    
+   v+ v-
+   
+      Followed by a number, increase or decrease the volume by that amount,
+      respectively. Like doing multiple ( or ) in a row, except only one
+      event is generated (which is better).
+   
    p
    
       Followed by a number between 0 and 3, changes the panning of the
