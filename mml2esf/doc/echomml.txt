@@ -201,6 +201,3 @@ it's suggested they're only used from the control channel:
    - Provide a way to make it usable to compose sound effects
    - Implement the [...] command for repeating sequences
    - Implement the {...} command to allow slides
-   
-   Note that lines starting with # are ignored. These are meant for metadata
-   but currently mml2esf doesn't support any sort of tagging.
