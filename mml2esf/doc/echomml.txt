@@ -11,6 +11,16 @@ assumes you already have an idea of how MML works so I won't explain that.
 
 -----------------------------------------------------------------------------
 
+*** Comments ***
+
+Lines starting with ; (spaces aside) are considered comments and ignored.
+
+Lines starting with # are meant for metadata and directives. Currently
+mml2esf doesn't understand any so they go ignored, but you should *not* use
+# to start comments (that's what ; is for).
+
+-----------------------------------------------------------------------------
+
 *** Macros ***
 
 Macros work as usual for MML. There can be up to 52 macros (from !A to !Z
@@ -180,7 +190,6 @@ it's suggested they're only used from the control channel:
    - Implement the [...] command for repeating sequences
    - Implement the {...} command to allow slides
    - Ignore whitespace in the middle of a sequence (recheck if already done?)
-   - Implement ; for comments
    
    Note that lines starting with # are ignored. These are meant for metadata
    but currently mml2esf doesn't support any sort of tagging.

@@ -106,7 +106,15 @@ int parse_mml(const char *filename)
          continue;
       }
 
+      // Comment?
+      if (*ptr == ';') {
+         free(line);
+         line_num++;
+         continue;
+      }
+
       // We don't process any hash command yet
+      // So same as comments for now but that may change
       if (*ptr == '#') {
          free(line);
          line_num++;
