@@ -712,6 +712,22 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          chanstat[channel].nullify = 0;
       }
 
+      // Space? (similar to &r)
+      else if (*data == 's') {
+         data++;
+
+         // Parse length if present
+         int length = parse_length(&data, line);
+         if (length == -1)
+            return -1;
+         if (length == 0)
+            length = chanstat[channel].length;
+
+         // Update timestamp
+         chanstat[channel].timestamp += length;
+         chanstat[channel].nullify = 0;
+      }
+
       // Ignore next note on/off? (used for mid-note changes)
       else if (*data == '&') {
          chanstat[channel].nullify = 1;

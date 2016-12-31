@@ -92,6 +92,11 @@ put spaces *in the middle* of a command.
    
       Inserts a rest. Same as notes otherwise.
    
+   s
+   
+      Inserts a delay (i.e. wastes time but no note on/off event). Pretty
+      much the same thing as &r, just looks cleaner.
+   
    l
    
       Followed by a length value, sets the default length for following notes
