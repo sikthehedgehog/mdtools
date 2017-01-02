@@ -3,7 +3,7 @@
 // Header file for "map.c"
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2016 Javier Degirolmo
+// Copyright 2011, 2012, 2016, 2017 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -31,6 +31,7 @@
 
 // Function prototypes
 void set_map_offset(uint16_t);
+void set_continuous_offset(int);
 int generate_map(const Bitmap *, FILE *, FILE *, int, int, int, int, int);
 
 #endif

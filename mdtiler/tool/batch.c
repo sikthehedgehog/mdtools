@@ -3,7 +3,7 @@
 // Batch file processing
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2016 Javier Degirolmo
+// Copyright 2011, 2012, 2016, 2017 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -461,8 +461,20 @@ int build_batch(const char *infilename) {
             failed = 1;
          }
 
-         // Check that the offset is indeed an integer
+         // Check if the argument is to toggle continuous mode
+         int done = 0;
          if (!failed) {
+            if (strcmp(args.tokens[1], "continuous") == 0) {
+               set_continuous_offset(1);
+               done = 1;
+            } else if (strcmp(args.tokens[1], "restarting") == 0) {
+               set_continuous_offset(0);
+               done = 1;
+            }
+         }
+
+         // If not check that the offset is indeed an integer
+         if (!failed && !done) {
             if (!is_integer(args.tokens[1])) {
                print_error_line(curr_line);
                fputs("offset must be an integer\n", stderr);
@@ -471,7 +483,7 @@ int build_batch(const char *infilename) {
          }
 
          // All OK, set new offset
-         if (!failed) {
+         if (!failed && !done) {
             set_map_offset(string_to_integer(args.tokens[1]));
          }
       }
