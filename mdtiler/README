@@ -5,8 +5,8 @@
 | | | | | | |_| | | | | | |___| |___| |\ \
 |_| |_| |_|____/  |_| |_|_____|_____|_| \_\
 
-mdtiler version 1.4
-©2011, 2012, 2016 Sik
+mdtiler version 1.5
+©2011, 2012, 2016, 2017 Sik
 
 mdtiler is a command line tool to convert images into tiles that can be used
 in Mega Drive software. It provides a quick build mode that will just convert
