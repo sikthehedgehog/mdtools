@@ -179,6 +179,30 @@ put spaces *in the middle* of a command.
       Using K will set the transpose directly (regardless of what it was),
       while using k will shift the transpose relative to the current one
       (e.g. K0k2k2k2 would be the same as K6).
+   
+   yDM yTL yKA yDR ySR ySL ySE
+   
+      FM channels only, changes one of the YM2612 registers directly.
+      Followed by two numbers (separated by comma), the first number
+      indicates the operator (0 to 3), the second number indicates the value
+      to be written (0 to 255). The registers affected are as follows:
+      
+      yDM = $3x (detune and multiply)
+      yTL = $4x (total level)
+      yKA = $5x (attack rate)
+      yDR = $6x (first decay rate)
+      ySR = $7x (second decay rate)
+      ySL = $8x (release rate and sustain level)
+      ySE = $9x (SSG-EG)
+   
+   y
+   
+      Similar to the above, and also takes two numbers. The first number is
+      the register number (0 to 255 for bank 0, 256 to 511 for bank 1), the
+      second number is the value to be written.
+      
+      Since it's not tied to the current channel, it can be placed anywhere
+      (even the Z channel).
 
 The following commands can be used in any channel but take effect globally so
 it's suggested they're only used from the control channel:

@@ -6,11 +6,13 @@
 // Function prototypes
 static int write_one(FILE *, uint8_t);
 static int write_two(FILE *, uint8_t, uint8_t);
+static int write_three(FILE *, uint8_t, uint8_t, uint8_t);
 static int emit_note_on(FILE *, unsigned, unsigned);
 static int emit_note_off(FILE *, unsigned);
 static int emit_set_volume(FILE *, unsigned, unsigned);
 static int emit_set_panning(FILE *, unsigned, unsigned);
 static int emit_set_instr(FILE *, unsigned, unsigned);
+static int emit_set_reg(FILE *, unsigned, unsigned);
 static int emit_lock(FILE *, unsigned);
 static int emit_loop(FILE *);
 
@@ -76,6 +78,9 @@ int generate_esf(const char *filename)
 
       // Parse the event
       switch (ev->type) {
+         case EV_SETREG:
+            if (emit_set_reg(file, ev->channel, ev->value)) goto error;
+            break;
          case EV_NOTEON:
             if (emit_note_on(file, ev->channel, ev->value)) goto error;
             break;
@@ -155,6 +160,25 @@ static int write_two(FILE *file, uint8_t byte1, uint8_t byte2)
 {
    if (write_one(file, byte1)) return -1;
    if (write_one(file, byte2)) return -1;
+   return 0;
+}
+
+//***************************************************************************
+// write_three [internal]
+// Writes three bytes to a file.
+//---------------------------------------------------------------------------
+// param file: file handle
+// param byte1: first value to write
+// param byte2: second value to write
+// param byte3: third value to write
+// return: 0 on success, -1 on failure
+//***************************************************************************
+
+static int write_three(FILE *file, uint8_t byte1, uint8_t byte2, uint8_t byte3)
+{
+   if (write_one(file, byte1)) return -1;
+   if (write_one(file, byte2)) return -1;
+   if (write_one(file, byte3)) return -1;
    return 0;
 }
 
@@ -245,6 +269,23 @@ static int emit_set_instr(FILE *file, unsigned channel, unsigned instrument)
 {
    // Emit bytes
    return write_two(file, 0x40 | channel, instrument);
+}
+
+//***************************************************************************
+// emit_set_reg [internal]
+// Generates a set register event on the ESF file.
+//---------------------------------------------------------------------------
+// param file: file handle
+// param reg: affected register
+// param value: new value
+// return: 0 on success, -1 on failure
+//***************************************************************************
+
+static int emit_set_reg(FILE *file, unsigned reg, unsigned value)
+{
+   // Emit bytes
+   return write_three(file,
+      0xF8 + (reg >> 8), reg & 0xFF, value);
 }
 
 //***************************************************************************

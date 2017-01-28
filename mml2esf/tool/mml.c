@@ -928,6 +928,90 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          chanstat[channel].instrument = instrument;
       }
 
+      // Set register directly?
+      else if (*data == 'y') {
+         data++;
+
+         // Is it a named register?
+         int base = -1, offset = -1;
+         if (data[0] == 'D' && data[1] == 'M')
+            { data += 2; base = 0x30; offset = parse_number(&data); }
+         else if (data[0] == 'T' && data[1] == 'L')
+            { data += 2; base = 0x40; offset = parse_number(&data); }
+         else if (data[0] == 'K' && data[1] == 'A')
+            { data += 2; base = 0x50; offset = parse_number(&data); }
+         else if (data[0] == 'D' && data[1] == 'R')
+            { data += 2; base = 0x60; offset = parse_number(&data); }
+         else if (data[0] == 'S' && data[1] == 'R')
+            { data += 2; base = 0x70; offset = parse_number(&data); }
+         else if (data[0] == 'S' && data[1] == 'L')
+            { data += 2; base = 0x80; offset = parse_number(&data); }
+         else if (data[0] == 'S' && data[1] == 'E')
+            { data += 2; base = 0x90; offset = parse_number(&data); }
+
+         // Determine target register if it was named
+         int reg = -1;
+         if (base != -1) {
+            // We must ensure it's a valid FM channel
+            if (channel > 0x07) {
+               fprintf(stderr, "Error[%u]: this command only works on FM "
+                  "channels\n", line);
+               return -1;
+            }
+
+            // Check that operator is valid
+            if (offset == -1) {
+               fprintf(stderr, "Error[%u]: missing operator\n", line);
+               return -1;
+            }
+            if (offset < 0 || offset > 3) {
+               fprintf(stderr, "Error[%u]: \"%d\" is not a valid operator\n",
+                  line, offset);
+               return -1;
+            }
+
+            // Determine target register
+            reg = base + (offset * 4) + (channel & 0x03) +
+                  (channel & 0x04 ? 0x100 : 0);
+         }
+
+         // Get raw register number otherwise
+         else {
+            reg = parse_number(&data);
+            if (reg == -1) {
+               fprintf(stderr, "Error[%u]: missing register\n", line);
+               return -1;
+            }
+            if (reg < 0x00 || reg > 0x1FF) {
+               fprintf(stderr, "Error[%u]: \"%d\" is not a valid register\n",
+                  line, reg);
+               return -1;
+            }
+         }
+
+         // Should be a comma here
+         if (*data != ',') {
+            fprintf(stderr, "Error[%u]: missing register value\n", line);
+            return -1;
+         }
+         data++;
+
+         // Get value
+         int value = parse_number(&data);
+         if (value == -1) {
+            fprintf(stderr, "Error[%u]: missing register value\n", line);
+            return -1;
+         }
+         if (value < 0x00 || value > 0xFF) {
+            fprintf(stderr, "Error[%u]: \"%d\" is not a valid value "
+               "for a register\n", line, value);
+            return -1;
+         }
+
+         // Issue event
+         add_set_reg(chanstat[channel].timestamp, reg, value);
+      }
+
       // Set loop point?
       else if (*data == 'L') {
          add_loop(chanstat[channel].timestamp);

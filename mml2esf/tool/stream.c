@@ -141,6 +141,33 @@ void add_set_instr(uint64_t timestamp, unsigned channel, unsigned instrument)
 }
 
 //***************************************************************************
+// add_set_tempo
+// Adds a set tempo event to the stream.
+//---------------------------------------------------------------------------
+// param timestamp: event timestamp
+// param tempo: new tempo for future events
+//***************************************************************************
+
+void add_set_tempo(uint64_t timestamp, unsigned tempo)
+{
+   alloc_event(timestamp, 0, EV_SETTEMPO, tempo);
+}
+
+//***************************************************************************
+// add_set_reg
+// Adds a set register event to the stream.
+//---------------------------------------------------------------------------
+// param timestamp: event timestamp
+// param register: affected register
+// param value: new value
+//***************************************************************************
+
+void add_set_reg(uint64_t timestamp, unsigned reg, unsigned value)
+{
+   alloc_event(timestamp, reg, EV_SETREG, value);
+}
+
+//***************************************************************************
 // add_lock
 // Adds a lock channel event to the stream.
 //---------------------------------------------------------------------------
@@ -163,19 +190,6 @@ void add_lock(uint64_t timestamp, unsigned channel)
 void add_loop(uint64_t timestamp)
 {
    alloc_event(timestamp, 0, EV_LOOP, 0);
-}
-
-//***************************************************************************
-// add_set_tempo
-// Adds a set tempo event to the stream.
-//---------------------------------------------------------------------------
-// param timestamp: event timestamp
-// param tempo: new tempo for future events
-//***************************************************************************
-
-void add_set_tempo(uint64_t timestamp, unsigned tempo)
-{
-   alloc_event(timestamp, 0, EV_SETTEMPO, tempo);
 }
 
 //***************************************************************************
