@@ -899,11 +899,40 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
 
       // Set instrument?
       else if (*data == '@') {
+         // Check for @# command (set flag)
+         // Only @ command supported by the Z channel
+         if (data[1] == '#') {
+            data += 2;
+
+            // Set or clear flags?
+            int set = 1;
+            if (*data == '!') {
+               set = 0;
+               data++;
+            }
+
+            // Get flags
+            int flags = parse_number(&data);
+            if (flags == -1) {
+               fprintf(stderr, "Error[%u]: missing flags\n", line);
+               return -1;
+            }
+            if (flags < 0x00 || flags > 0xFF) {
+               fprintf(stderr, "Error[%u]: \"%d\" doesn't make valid flags\n",
+                  line, flags);
+               return -1;
+            }
+
+            // Store flags command
+            add_set_flags(chanstat[channel].timestamp, set, flags);
+            continue;
+         }
+
          // Control channel shouldn't get instrument commands...
          if (channel == 0x10) goto noctrl;
          data++;
 
-         // Check for special @$ command
+         // Check for @$ command (channel lock)
          if (*data == '$') {
             data++;
             add_lock(chanstat[channel].timestamp, channel);

@@ -15,6 +15,7 @@ typedef enum {
    EV_SETINSTR,               // Set instrument
    EV_SETTEMPO,               // Set tempo
    EV_SETREG,                 // Set register
+   EV_FLAGS,                  // Change flags
    EV_LOCK,                   // Lock channel
    EV_LOOP,                   // Loop point
 } EventType;
@@ -36,6 +37,7 @@ void add_set_pan(uint64_t, unsigned, unsigned);
 void add_set_instr(uint64_t, unsigned, unsigned);
 void add_set_tempo(uint64_t, unsigned);
 void add_set_reg(uint64_t, unsigned, unsigned);
+void add_set_flags(uint64_t, unsigned, unsigned);
 void add_lock(uint64_t, unsigned);
 void add_loop(uint64_t);
 void sort_stream(void);

@@ -222,6 +222,19 @@ it's suggested they're only used from the control channel:
       Measured in the amount of Echo ticks it'd take for a whole note
       (i.e. 1/1) to play. One Echo tick = 1/60th of a second. Default tempo
       is 128 (32 ticks per quarter).
+   
+   @#
+   
+      Followed by a number from 0 to 255. This commands sets the specified
+      communication flags. To get the number add up the corresponding values:
+      1, 2, 4, 8, 16, 32, 64, 128, e.g. to set the 2nd and 3rd flags, do @#6
+      (since 2+4 = 6).
+      
+      Flags are used to help the 68000 keep track which part is being played.
+   
+   @#!
+   
+      Same as above, but the specified flags are cleared instead.
 
 -----------------------------------------------------------------------------
 

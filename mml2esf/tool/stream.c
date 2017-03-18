@@ -168,6 +168,20 @@ void add_set_reg(uint64_t timestamp, unsigned reg, unsigned value)
 }
 
 //***************************************************************************
+// add_set_flags
+// Adds a set/clear flags event to the stream.
+//---------------------------------------------------------------------------
+// param timestamp: event timestamp
+// param setclr: 1 = set, 0 = clear
+// param flags: flags bitfield
+//***************************************************************************
+
+void add_set_flags(uint64_t timestamp, unsigned setclr, unsigned flags)
+{
+   alloc_event(timestamp, setclr, EV_FLAGS, flags);
+}
+
+//***************************************************************************
 // add_lock
 // Adds a lock channel event to the stream.
 //---------------------------------------------------------------------------

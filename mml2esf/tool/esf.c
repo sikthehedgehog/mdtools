@@ -13,6 +13,7 @@ static int emit_set_volume(FILE *, unsigned, unsigned);
 static int emit_set_panning(FILE *, unsigned, unsigned);
 static int emit_set_instr(FILE *, unsigned, unsigned);
 static int emit_set_reg(FILE *, unsigned, unsigned);
+static int emit_set_flags(FILE *, unsigned, unsigned);
 static int emit_lock(FILE *, unsigned);
 static int emit_loop(FILE *);
 
@@ -78,9 +79,6 @@ int generate_esf(const char *filename)
 
       // Parse the event
       switch (ev->type) {
-         case EV_SETREG:
-            if (emit_set_reg(file, ev->channel, ev->value)) goto error;
-            break;
          case EV_NOTEON:
             if (emit_note_on(file, ev->channel, ev->value)) goto error;
             break;
@@ -95,6 +93,12 @@ int generate_esf(const char *filename)
             break;
          case EV_SETINSTR:
             if (emit_set_instr(file, ev->channel, ev->value)) goto error;
+            break;
+         case EV_SETREG:
+            if (emit_set_reg(file, ev->channel, ev->value)) goto error;
+            break;
+         case EV_FLAGS:
+            if (emit_set_flags(file, ev->channel, ev->value)) goto error;
             break;
          case EV_LOCK:
             if (emit_lock(file, ev->channel)) goto error;
@@ -286,6 +290,23 @@ static int emit_set_reg(FILE *file, unsigned reg, unsigned value)
    // Emit bytes
    return write_three(file,
       0xF8 + (reg >> 8), reg & 0xFF, value);
+}
+
+//***************************************************************************
+// emit_set_flags [internal]
+// Generates a set/clear flags event on the ESF file.
+//---------------------------------------------------------------------------
+// param file: file handle
+// param setclr: 1 = set, 0 = clear
+// param flags: flags bitfield
+// return: 0 on success, -1 on failure
+//***************************************************************************
+
+static int emit_set_flags(FILE *file, unsigned setclr, unsigned flags)
+{
+   // Emit bytes
+   return write_two(file, setclr ? 0xFA : 0xFB,
+      flags ^ (setclr ? 0x00 : 0xFF));
 }
 
 //***************************************************************************
