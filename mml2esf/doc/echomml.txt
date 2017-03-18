@@ -230,11 +230,11 @@ it's suggested they're only used from the control channel:
       1, 2, 4, 8, 16, 32, 64, 128, e.g. to set the 2nd and 3rd flags, do @#6
       (since 2+4 = 6).
       
-      Flags are used to help the 68000 keep track which part is being played.
-   
-   @#!
-   
-      Same as above, but the specified flags are cleared instead.
+      If the number is negative (i.e. has a - in front of it), then the flags
+      are cleared instead (e.g. @#-6 would clear the 2nd and 3rd flags).
+      
+      Flags are used to help the 68000 keep track of the current position
+      within the song and don't affect sound output on their own.
 
 -----------------------------------------------------------------------------
 

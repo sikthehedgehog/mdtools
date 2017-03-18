@@ -906,7 +906,7 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
 
             // Set or clear flags?
             int set = 1;
-            if (*data == '!') {
+            if (*data == '-') {
                set = 0;
                data++;
             }
