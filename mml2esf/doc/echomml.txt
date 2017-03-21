@@ -145,6 +145,11 @@ put spaces *in the middle* of a command.
       is used. This is normally used to stretch lengths by non-half amounts
       (e.g. c4&r16 will make the C note to play for 5/16th).
    
+   _
+   
+      Turns the next note into a "slide", that is, instead of causing a
+      note on, it only causes the frequency to be changed.
+   
    v
    
       Followed by a number between 0 and 15, sets the volume of the channel

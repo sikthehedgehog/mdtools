@@ -9,6 +9,7 @@ static int write_two(FILE *, uint8_t, uint8_t);
 static int write_three(FILE *, uint8_t, uint8_t, uint8_t);
 static int emit_note_on(FILE *, unsigned, unsigned);
 static int emit_note_off(FILE *, unsigned);
+static int emit_set_freq(FILE *, unsigned, unsigned);
 static int emit_set_volume(FILE *, unsigned, unsigned);
 static int emit_set_panning(FILE *, unsigned, unsigned);
 static int emit_set_instr(FILE *, unsigned, unsigned);
@@ -84,6 +85,9 @@ int generate_esf(const char *filename)
             break;
          case EV_NOTEOFF:
             if (emit_note_off(file, ev->channel)) goto error;
+            break;
+         case EV_SETFREQ:
+            if (emit_set_freq(file, ev->channel, ev->value)) goto error;
             break;
          case EV_SETVOL:
             if (emit_set_volume(file, ev->channel, ev->value)) goto error;
@@ -225,6 +229,25 @@ static int emit_note_off(FILE *file, unsigned channel)
 {
    // Emit byte
    return write_one(file, 0x10 | channel);
+}
+
+//***************************************************************************
+// emit_set_freq [internal]
+// Generates a set frequency event on the ESF file.
+//---------------------------------------------------------------------------
+// param file: file handle
+// param channel: affected channel
+// param value: raw frequency value
+// return: 0 on success, -1 on failure
+//***************************************************************************
+
+static int emit_set_freq(FILE *file, unsigned channel, unsigned value)
+{
+   // Emit bytes
+   if (channel <= 0x0A)
+      return write_three(file, 0x30 | channel, value >> 8, value);
+   else
+      return write_two(file, 0x30 | channel, value);
 }
 
 //***************************************************************************

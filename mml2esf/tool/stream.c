@@ -83,6 +83,35 @@ void add_note_off(uint64_t timestamp, unsigned channel)
 }
 
 //***************************************************************************
+// add_set_freq
+// Adds a set frequency event to the stream.
+//---------------------------------------------------------------------------
+// param timestamp: event timestamp
+// param channel: affected channel
+// param freq: new frequency
+// param octave: new octave
+//***************************************************************************
+
+void add_set_freq(uint64_t timestamp, unsigned channel,
+unsigned freq, unsigned octave)
+{
+   // Process the frequency and octave into the format Echo wants
+   // The exact format depends on the kind of channel
+   uint16_t raw;
+   if (/*channel >= 0x00 && */ channel <= 0x07) {
+      raw = freq | (octave << 11);
+   } else if (channel >= 0x08 && channel <= 0x0A) {
+      raw = freq >> octave;
+      raw = (raw & 0x0F << 8) | (raw >> 6);
+   } else {
+      raw = freq;
+   }
+
+   // Now issue the event
+   alloc_event(timestamp, channel, EV_SETFREQ, raw);
+}
+
+//***************************************************************************
 // add_set_vol
 // Adds a set volume to the stream.
 //---------------------------------------------------------------------------

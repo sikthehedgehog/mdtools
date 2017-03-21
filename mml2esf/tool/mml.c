@@ -31,7 +31,21 @@ static struct {
    unsigned length;        // Default length
    unsigned instrument;    // Current instrument
    int nullify;            // Nullify next note on/off
+   int slide;              // Treat next note as a slide
 } chanstat[NUM_CHAN];
+
+// Frequencies for each semitone
+// Used for slide notes
+static const unsigned fm_freq[] = {
+   644, 681, 722, 765,
+   810, 858, 910, 964,
+   1021,1081,1146,1214
+};
+static const unsigned psg_freq[] = {
+   851, 803, 758, 715,
+   675, 637, 601, 568,
+   536, 506, 477, 450
+};
 
 // Private function prototypes
 static char *read_line(FILE *);
@@ -88,6 +102,7 @@ int parse_mml(const char *filename)
       chanstat[i].length = 0x80;
       chanstat[i].instrument = 0;
       chanstat[i].nullify = 0;
+      chanstat[i].slide = 0;
    }
 
    // Go through all lines
@@ -633,13 +648,34 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          if (length == 0)
             length = chanstat[channel].length;
 
+         // If the note is meant to be a slide we need
+         // to use raw frequency values instead
+         int slide = chanstat[channel].slide;
+         int freq = 0;
+
+         if (slide) {
+            if (/*channel >= 0x00 &&*/ channel <= 0x07)
+               freq = fm_freq[semitone % 12];
+            else if (channel >= 0x08 && channel <= 0x0A)
+               freq = psg_freq[semitone % 12];
+            else
+               slide = 0;
+         }
+
          // Add event
-         if (!chanstat[channel].nullify)
-            add_note_on(chanstat[channel].timestamp, channel,
-            channel != 0x0C ? (unsigned) semitone :
-            chanstat[channel].instrument);
+         if (!chanstat[channel].nullify) {
+            if (!slide) {
+               add_note_on(chanstat[channel].timestamp, channel,
+               channel != 0x0C ? (unsigned) semitone :
+               chanstat[channel].instrument);
+            } else {
+               add_set_freq(chanstat[channel].timestamp, channel,
+               freq, semitone / 12);
+            }
+         }
          chanstat[channel].timestamp += length;
          chanstat[channel].nullify = 0;
+         chanstat[channel].slide = 0;
       }
 
       // Direct note?
@@ -674,11 +710,11 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          int valid = 0;
          if (/*channel >= 0x00 &&*/ channel <= 0x07)
             valid = (value >= 0 && value <= 95);
-         if (channel >= 0x08 && channel <= 0x0A)
+         else if (channel >= 0x08 && channel <= 0x0A)
             valid = (value >= 0 && value <= 71);
-         if (channel == 0x0B)
+         else if (channel == 0x0B)
             valid = (value >= 0 && value <= 7);
-         if (channel == 0x0C)
+         else if (channel == 0x0C)
             valid = (value >= 0 && value <= 0xFF);
 
          if (!valid) {
@@ -687,11 +723,33 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
             return -1;
          }
 
+         // If the note is meant to be a slide we need
+         // to use raw frequency values instead
+         int slide = chanstat[channel].slide;
+         int freq = 0;
+
+         if (slide) {
+            if (/*channel >= 0x00 &&*/ channel <= 0x07)
+               freq = fm_freq[value % 12];
+            else if (channel >= 0x08 && channel <= 0x0A)
+               freq = psg_freq[value % 12];
+            else if (channel == 0x0B)
+               freq = value;
+            else
+               slide = 0;
+         }
+
          // Add event
-         if (!chanstat[channel].nullify)
-            add_note_on(chanstat[channel].timestamp, channel, value);
+         if (!chanstat[channel].nullify) {
+            if (!slide)
+               add_note_on(chanstat[channel].timestamp, channel, value);
+            else
+               add_set_freq(chanstat[channel].timestamp, channel,
+               freq, value / 12);
+         }
          chanstat[channel].timestamp += length;
          chanstat[channel].nullify = 0;
+         chanstat[channel].slide = 0;
       }
 
       // Note off?
@@ -710,6 +768,7 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
             add_note_off(chanstat[channel].timestamp, channel);
          chanstat[channel].timestamp += length;
          chanstat[channel].nullify = 0;
+         chanstat[channel].slide = 0;
       }
 
       // Space? (similar to &r)
@@ -726,11 +785,18 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          // Update timestamp
          chanstat[channel].timestamp += length;
          chanstat[channel].nullify = 0;
+         chanstat[channel].slide = 0;
       }
 
       // Ignore next note on/off? (used for mid-note changes)
       else if (*data == '&') {
          chanstat[channel].nullify = 1;
+         data++;
+      }
+
+      // Treat next note as a slide?
+      else if (*data == '_') {
+         chanstat[channel].slide = 1;
          data++;
       }
 
