@@ -62,7 +62,8 @@ void set_continuous_offset(int enable) {
 
 //***************************************************************************
 // generate_map
-// [...]
+// Takes care of the "map" command in mdtiler. Generates the tilemap and the
+// tiles out of it.
 //---------------------------------------------------------------------------
 // param in: input bitmap
 // param outgfx: output file where tiles are stored
@@ -77,7 +78,7 @@ void set_continuous_offset(int enable) {
 
 int generate_map(const Bitmap *in, FILE *outgfx, FILE *outmap,
 int x, int y, int width, int height, int order) {
-   // ...
+   // Um...
    if (width <= 0 || height <= 0)
       return ERR_PARSE;
 
