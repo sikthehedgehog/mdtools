@@ -47,7 +47,7 @@ typedef struct {
 static int read_line(FILE *, char **);
 static int split_tokens(const char *, TokenList *);
 static void free_tokens(TokenList *);
-static void print_error_line(size_t);
+static void print_error_line(size_t, const char *);
 static int is_integer(const char *);
 static int is_color(const char *);
 static unsigned string_to_integer(const char *);
@@ -93,10 +93,10 @@ int build_batch(const char *infilename) {
       if (errcode) {
          // Syntax errors?
          if (errcode == ERR_BADQUOTE) {
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs("quote inside non-quoted token\n", stderr);
          } else if (errcode == ERR_NOQUOTE) {
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs("missing ending quote\n", stderr);
          }
 
@@ -136,7 +136,7 @@ int build_batch(const char *infilename) {
                "too many parameters\n";
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs(msg, stderr);
             failed = 1;
          }
@@ -153,7 +153,7 @@ int build_batch(const char *infilename) {
 
             // Oops?
             if (in == NULL) {
-               print_error_line(curr_line);
+               print_error_line(curr_line, infilename);
                fprintf(stderr, "can't load input bitmap \"%s\"\n", filename);
                failed = 1;
             }
@@ -170,7 +170,7 @@ int build_batch(const char *infilename) {
                "too many parameters\n";
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs(msg, stderr);
             failed = 1;
          }
@@ -191,7 +191,7 @@ int build_batch(const char *infilename) {
 
             // Oops?
             if (out[which] == NULL) {
-               print_error_line(curr_line);
+               print_error_line(curr_line, infilename);
                fprintf(stderr, "can't open output bitmap \"%s\"\n",
                   filename);
                failed = 1;
@@ -215,7 +215,7 @@ int build_batch(const char *infilename) {
                msg = "%d colors missing\n";
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fprintf(stderr, msg, 17 - num_args);
             failed = 1;
          }
@@ -232,7 +232,7 @@ int build_batch(const char *infilename) {
 
                // Check that it's a valid color value
                if (!is_color(arg)) {
-                  print_error_line(curr_line);
+                  print_error_line(curr_line, infilename);
                   fprintf(stderr, "\"%s\" is not a valid color\n", arg);
                   failed = 1;
                }
@@ -256,7 +256,7 @@ int build_batch(const char *infilename) {
                "too many parameters\n";
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs(msg, stderr);
             failed = 1;
          }
@@ -274,7 +274,7 @@ int build_batch(const char *infilename) {
 
             // Nope
             else {
-               print_error_line(curr_line);
+               print_error_line(curr_line, infilename);
                fprintf(stderr, "unknown layout type \"%s\"\n", param);
                failed = 1;
             }
@@ -291,7 +291,7 @@ int build_batch(const char *infilename) {
                "too many parameters\n";
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs(msg, stderr);
             failed = 1;
          }
@@ -309,7 +309,7 @@ int build_batch(const char *infilename) {
 
             // Nope
             else {
-               print_error_line(curr_line);
+               print_error_line(curr_line, infilename);
                fprintf(stderr, "unknown format \"%s\"\n", param);
                failed = 1;
             }
@@ -331,21 +331,21 @@ int build_batch(const char *infilename) {
             }
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs(msg, stderr);
             failed = 1;
          }
 
          // Make sure there's a bitmap to read from...
          else if (in == NULL) {
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs("no input file to read from\n", stderr);
             failed = 1;
          }
 
          // Make sure there's a file to write into...
          else if (out[0] == NULL) {
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs("no output file to write into\n", stderr);
             failed = 1;
          }
@@ -396,28 +396,28 @@ int build_batch(const char *infilename) {
             }
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs(msg, stderr);
             failed = 1;
          }
 
          // Make sure there's a bitmap to read from...
          else if (in == NULL) {
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs("no input file to read from\n", stderr);
             failed = 1;
          }
 
          // Make sure there's a file to write tiles into...
          else if (out[0] == NULL) {
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs("no output file to write tiles\n", stderr);
             failed = 1;
          }
 
          // Make sure there's a file to write mappings into...
          else if (out[1] == NULL) {
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs("no output file to write mappings\n", stderr);
             failed = 1;
          }
@@ -456,7 +456,7 @@ int build_batch(const char *infilename) {
             }
 
             // Show message on screen
-            print_error_line(curr_line);
+            print_error_line(curr_line, infilename);
             fputs(msg, stderr);
             failed = 1;
          }
@@ -476,7 +476,7 @@ int build_batch(const char *infilename) {
          // If not check that the offset is indeed an integer
          if (!failed && !done) {
             if (!is_integer(args.tokens[1])) {
-               print_error_line(curr_line);
+               print_error_line(curr_line, infilename);
                fputs("offset must be an integer\n", stderr);
                failed = 1;
             }
@@ -490,7 +490,7 @@ int build_batch(const char *infilename) {
 
       // Unknown command?
       else {
-         print_error_line(curr_line);
+         print_error_line(curr_line, infilename);
          fprintf(stderr, "unknown command \"%s\"\n", command);
          failed = 1;
       }
@@ -765,10 +765,16 @@ static void free_tokens(TokenList *list) {
 // Prints the header for syntax error messages
 //---------------------------------------------------------------------------
 // param line: current line ID
+// param filename: name of file with error (can be NULL)
 //***************************************************************************
 
-static void print_error_line(size_t line) {
-   fprintf(stderr, "Error [%zu]: ", line);
+static void print_error_line(size_t line, const char *filename) {
+   if (filename == NULL) filename = "";
+
+   if (filename[0] == '\0')
+      fprintf(stderr, "Error [%zu]: ", line);
+   else
+      fprintf(stderr, "Error [%s:%zu]: ", filename, line);
 }
 
 //***************************************************************************

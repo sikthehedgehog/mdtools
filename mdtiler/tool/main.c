@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.5");
+      puts("1.51");
       return EXIT_SUCCESS;
    }
 
@@ -222,22 +222,54 @@ int main(int argc, char **argv) {
    if (errcode) {
       // Determine message to show
       const char *msg;
+      const char *errfile = NULL;
+
       switch(errcode) {
-         case ERR_OPENINPUT: msg = "can't open input file"; break;
-         case ERR_OPENOUTPUT: msg = "can't open output file"; break;
-         case ERR_OPENBATCH: msg = "can't open batch file"; break;
-         case ERR_CANTREAD: msg = "can't read batch file"; break;
-         case ERR_CANTWRITE: msg = "can't write to output file"; break;
-         case ERR_CANTWRITEGFX: msg = "can't write to tiles file"; break;
-         case ERR_CANTWRITEMAP: msg = "can't write to mappings file"; break;
-         case ERR_MANYTILES: msg = "too many unique tiles"; break;
+         case ERR_OPENINPUT:
+            msg = "can't open input file";
+            errfile = infilename;
+            break;
+         case ERR_OPENOUTPUT:
+            msg = "can't open output file";
+            errfile = outfilename;
+            break;
+         case ERR_OPENBATCH:
+            msg = "can't open batch file";
+            errfile = infilename;
+            break;
+         case ERR_CANTREAD:
+            msg = "can't read batch file";
+            errfile = infilename;
+            break;
+         case ERR_CANTWRITE:
+            msg = "can't write to output file";
+            errfile = outfilename;
+            break;
+         case ERR_CANTWRITEGFX:
+            msg = "can't write to tiles file";
+            errfile = infilename;
+            break;
+         case ERR_CANTWRITEMAP:
+            msg = "can't write to mappings file";
+            errfile = infilename;
+            break;
+         case ERR_MANYTILES:
+            msg = "too many unique tiles";
+            errfile = infilename;
+            break;
          case ERR_NOMEMORY: msg = "ran out of memory"; break;
-         case ERR_PARSE: msg = "unable to process batch file"; break;
+         case ERR_PARSE:
+            msg = "unable to process batch file";
+            errfile = infilename;
+            break;
          default: msg = "unknown error"; break;
       }
 
       // Show message on screen
-      fprintf(stderr, "Error: %s\n", msg);
+      if (errfile != NULL)
+         fprintf(stderr, "Error [%s]: %s\n", errfile, msg);
+      else
+         fprintf(stderr, "Error: %s\n", msg);
    }
 
    // Quit program
