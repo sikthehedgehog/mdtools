@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.51");
+      puts("1.52");
       return EXIT_SUCCESS;
    }
 
@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
 
       // Show message on screen
       if (errfile != NULL)
-         fprintf(stderr, "Error [%s]: %s\n", errfile, msg);
+         fprintf(stderr, "Error[%s]: %s\n", errfile, msg);
       else
          fprintf(stderr, "Error: %s\n", msg);
    }

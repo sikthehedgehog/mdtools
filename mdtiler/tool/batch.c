@@ -772,9 +772,9 @@ static void print_error_line(size_t line, const char *filename) {
    if (filename == NULL) filename = "";
 
    if (filename[0] == '\0')
-      fprintf(stderr, "Error [%zu]: ", line);
+      fprintf(stderr, "Error[%zu]: ", line);
    else
-      fprintf(stderr, "Error [%s:%zu]: ", filename, line);
+      fprintf(stderr, "Error[%s:%zu]: ", filename, line);
 }
 
 //***************************************************************************
