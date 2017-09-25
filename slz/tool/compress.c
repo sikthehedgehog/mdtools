@@ -3,7 +3,7 @@
 // Compresses a raw blob into an SLZ file
 //***************************************************************************
 // Slz compression tool
-// Copyright 2011 Javier Degirolmo
+// Copyright 2011, 2017 Javier Degirolmo
 //
 // This file is part of the slz tool.
 //
@@ -49,8 +49,9 @@ int compress(FILE *infile, FILE *outfile, int format) {
 
    // Get filesize (sorry, we have to seek here!)
    if (fseek(infile, 0, SEEK_END)) return ERR_CANTREAD;
-   long filesize = ftell(infile);
-   if (filesize == -1) return ERR_CANTREAD;
+   long eof_pos = ftell(infile);
+   if (eof_pos == -1) return ERR_CANTREAD;
+   size_t filesize = (size_t)(eof_pos);
    if (fseek(infile, 0, SEEK_SET)) return ERR_CANTREAD;
 
    // Empty?
@@ -80,13 +81,13 @@ int compress(FILE *infile, FILE *outfile, int format) {
 
    // Write uncompressed size
    if (format == FORMAT_SLZ16)
-      errcode = write_word(outfile, filesize);
+      errcode = write_word(outfile, (uint16_t)(filesize));
    else
-      errcode = write_tribyte(outfile, filesize);
+      errcode = write_tribyte(outfile, (uint32_t)(filesize));
    if (errcode) return errcode;
 
    // To store token data
-   uint8_t tokens;
+   uint8_t tokens = 0;
    int num_tokens = 0;
 
    // Buffer to store the compressed data (we need to buffer this because the
@@ -111,10 +112,10 @@ int compress(FILE *infile, FILE *outfile, int format) {
       // don't bother scanning those either
       if (pos > 0 && filesize - pos >= 3) {
          // Determine maximum distance to look for
-         uint16_t max_dist = pos > 0x1002 ? 0x1002 : pos;
+         uint16_t max_dist = (uint16_t)(pos > 0x1002 ? 0x1002 : pos);
 
          // Determine maximum length to check for (to avoid overflow issues)
-         uint8_t max_len = filesize - pos > 18 ? 18 : filesize - pos;
+         uint8_t max_len = (uint8_t)(filesize - pos > 18 ? 18 : filesize - pos);
 
          // Pointer to the strings we're going to compare
          // Making them pointers to help the compiler optimize
@@ -137,7 +138,7 @@ int compress(FILE *infile, FILE *outfile, int format) {
                // Did we find a match? (if so, don't bother with smaller
                // string, also mark the token as compressable)
                if (!memcmp(other, target, curr_len)) {
-                  dist = curr_dist;
+                  dist = (uint16_t)(curr_dist);
                   len = curr_len;
                   compressed = 1;
                   break;

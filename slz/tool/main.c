@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.2");
+      puts("1.2a");
       return EXIT_SUCCESS;
    }
 
