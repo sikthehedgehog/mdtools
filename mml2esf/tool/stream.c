@@ -102,7 +102,7 @@ unsigned freq, unsigned octave)
       raw = freq | (octave << 11);
    } else if (channel >= 0x08 && channel <= 0x0A) {
       raw = freq >> octave;
-      raw = (raw & 0x0F << 8) | (raw >> 6);
+      raw = ((raw & 0x0F) << 8) | (raw >> 4);
    } else {
       raw = freq;
    }
