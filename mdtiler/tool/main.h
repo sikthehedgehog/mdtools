@@ -3,7 +3,7 @@
 // Some common definitions and such
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012 Javier Degirolmo
+// Copyright 2011, 2012, 2018 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -33,7 +33,8 @@ enum {
    ERR_CANTREAD,        // Can't read from batch file
    ERR_CANTWRITE,       // Can't write to output file
    ERR_CANTWRITEGFX,    // Can't write to output file (tiles)
-   ERR_CANTWRITEMAP,    // Can't write to output file (mappings)
+   ERR_CANTWRITEMAP,    // Can't write to output file (tilemap mappings)
+   ERR_CANTWRITESPR,    // Can't write to output file (sprite mappings)
    ERR_MANYTILES,       // Too many unique tiles
    ERR_NOMEMORY,        // Ran out of memory
    ERR_PARSE,           // Parsing error

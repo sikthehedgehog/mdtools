@@ -3,7 +3,7 @@
 // Batch file processing
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2016, 2017 Javier Degirolmo
+// Copyright 2011, 2012, 2016, 2017, 2018 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -28,8 +28,10 @@
 #include <ctype.h>
 #include "main.h"
 #include "bitmap.h"
-#include "tiles.h"
+#include "offset.h"
 #include "map.h"
+#include "sprite.h"
+#include "tiles.h"
 
 // Possible layout formats
 typedef enum {
@@ -418,7 +420,7 @@ int build_batch(const char *infilename) {
          // Make sure there's a file to write mappings into...
          else if (out[1] == NULL) {
             print_error_line(curr_line, infilename);
-            fputs("no output file to write mappings\n", stderr);
+            fputs("no output file to write tilemap mappings\n", stderr);
             failed = 1;
          }
 
@@ -444,7 +446,86 @@ int build_batch(const char *infilename) {
          }
       }
 
-      // Set offset for map?
+      // Generate sprite mapping?
+      else if (!strcmp(command, "sprite")) {
+         // This command only makes sense with sprite ordering!
+         if (layout != LAYOUT_SPRITE) {
+            print_error_line(curr_line, infilename);
+            fputs("\"sprite\" command only works with sprite ordering\n",
+               stderr);
+            failed = 1;
+         }
+
+         // End of sprite?
+         else if (num_args == 2 && strcmp(args.tokens[1], "end") == 0) {
+            errcode = generate_sprite_end(out[1]);
+            if (errcode) {
+               free_tokens(&args);
+               goto panic;
+            }
+         }
+
+         // Check number of arguments then
+         // Should be identical to "tiles"
+         else if (num_args != 5) {
+            // Determine error message
+            const char *msg;
+            switch (num_args) {
+               case 1: msg = "missing coordinates and dimensions\n"; break;
+               case 2: msg = "missing Y coordinate and dimensions\n"; break;
+               case 3: msg = "missing dimensions\n"; break;
+               case 4: msg = "missing height\n"; break;
+               default: msg = "too many parameters\n"; break;
+            }
+
+            // Show message on screen
+            print_error_line(curr_line, infilename);
+            fputs(msg, stderr);
+            failed = 1;
+         }
+
+         // Make sure there's a bitmap to read from...
+         else if (in == NULL) {
+            print_error_line(curr_line, infilename);
+            fputs("no input file to read from\n", stderr);
+            failed = 1;
+         }
+
+         // Make sure there's a file to write into...
+         else if (out[0] == NULL) {
+            print_error_line(curr_line, infilename);
+            fputs("no output file to write into\n", stderr);
+            failed = 1;
+         }
+
+         // Make sure there's a file to write mappings into...
+         else if (out[1] == NULL) {
+            print_error_line(curr_line, infilename);
+            fputs("no output file to write sprite mappings\n", stderr);
+            failed = 1;
+         }
+
+         // Everything is seemingly OK, process command
+         else {
+            // Retrieve parameters
+            // To-do: check that they're indeed integers, but for now it
+            // isn't much of an issue because at worst atoi will return 0
+            int x = string_to_integer(args.tokens[1]) << 3;
+            int y = string_to_integer(args.tokens[2]) << 3;
+            int width = string_to_integer(args.tokens[3]);
+            int height = string_to_integer(args.tokens[4]);
+
+            // Generate sprite mapping
+            errcode = generate_sprite(in, out[0], out[1],
+               x, y, width, height);
+            if (errcode) {
+               free_tokens(&args);
+               goto panic;
+            }
+         }
+      }
+
+      // Set offset for map/sprite?
       else if (!strcmp(command, "offset")) {
          // Check number of arguments
          if (num_args != 2) {
@@ -486,6 +567,30 @@ int build_batch(const char *infilename) {
          if (!failed && !done) {
             set_map_offset(string_to_integer(args.tokens[1]));
          }
+      }
+
+      // Set origin for sprite mappings?
+      else if (!strcmp(command, "origin")) {
+         // Check number of arguments
+         if (num_args != 3) {
+            // Determine error message
+            const char *msg;
+            switch (num_args) {
+               case 1: msg = "missing coordinates\n"; break;
+               case 2: msg = "missing Y coordinate\n"; break;
+               default: msg = "too many parameters\n"; break;
+            }
+
+            // Show message on screen
+            print_error_line(curr_line, infilename);
+            fputs(msg, stderr);
+            failed = 1;
+         }
+
+         // Change sprite origin
+         int x = string_to_integer(args.tokens[1]);
+         int y = string_to_integer(args.tokens[2]);
+         set_sprite_origin(x, y);
       }
 
       // Unknown command?

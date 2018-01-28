@@ -3,7 +3,7 @@
 // Generates map data out of a bitmap
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2016, 2017 Javier Degirolmo
+// Copyright 2011, 2012, 2016, 2017, 2018 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -28,37 +28,8 @@
 #include <string.h>
 #include "main.h"
 #include "bitmap.h"
+#include "offset.h"
 #include "tiles.h"
-
-// Offset for the tiles in the map
-static uint16_t offset = 0;
-
-// If set, the offset changes after each call to 'map'
-// This allows to allocate tiles for multiple maps without knowing ahead of
-// time how many tiles will be actually needed
-static int continuous = 0;
-
-//***************************************************************************
-// set_map_offset
-// Sets the tile ID offset for generate_map
-//---------------------------------------------------------------------------
-// param new_offset: new tile ID offset
-//***************************************************************************
-
-void set_map_offset(uint16_t new_offset) {
-   offset = new_offset;
-}
-
-//***************************************************************************
-// set_continuous_offset
-// Sets whether offset should be continuous or not
-//---------------------------------------------------------------------------
-// param enable: 1 for continuous, 0 otherwise
-//***************************************************************************
-
-void set_continuous_offset(int enable) {
-   continuous = enable;
-}
 
 //***************************************************************************
 // generate_map
@@ -87,6 +58,9 @@ int x, int y, int width, int height, int order) {
       width * height);
    if (mappings == NULL)
       return ERR_NOMEMORY;
+
+   // Get current offset
+   uint16_t offset = get_map_offset();
 
    // To store each tile
    Tile *tiles = NULL;
@@ -281,8 +255,8 @@ int x, int y, int width, int height, int order) {
    }
 
    // If continuous then adjust the offset
-   if (continuous)
-      offset += num_tiles;
+   if (is_continuous_offset())
+      increment_offset(num_tiles);
 
    // Success!
    free(tiles);

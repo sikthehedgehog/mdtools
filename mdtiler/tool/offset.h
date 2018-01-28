@@ -1,9 +1,9 @@
 //***************************************************************************
-// "map.h"
-// Header file for "map.c"
+// "offset.h"
+// Header file for "offset.c"
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2016, 2017, 2018 Javier Degirolmo
+// Copyright 2018 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -21,14 +21,17 @@
 // along with mdtiler.  If not, see <http://www.gnu.org/licenses/>.
 //***************************************************************************
 
-#ifndef MAP_H
-#define MAP_H
+#ifndef OFFSET_H
+#define OFFSET_H
 
 // Required headers
-#include <stdio.h>
-#include "bitmap.h"
+#include <stdint.h>
 
 // Function prototypes
-int generate_map(const Bitmap *, FILE *, FILE *, int, int, int, int, int);
+uint16_t get_map_offset(void);
+void set_map_offset(uint16_t);
+void increment_offset(uint16_t);
+void set_continuous_offset(int);
+int is_continuous_offset(void);
 
 #endif

@@ -1,9 +1,9 @@
 //***************************************************************************
-// "map.h"
-// Header file for "map.c"
+// "sprite.h"
+// Header file for "sprite.c"
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2016, 2017, 2018 Javier Degirolmo
+// Copyright 2018 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -21,14 +21,16 @@
 // along with mdtiler.  If not, see <http://www.gnu.org/licenses/>.
 //***************************************************************************
 
-#ifndef MAP_H
-#define MAP_H
+#ifndef SPRITE_H
+#define SPRITE_H
 
 // Required headers
 #include <stdio.h>
 #include "bitmap.h"
 
 // Function prototypes
-int generate_map(const Bitmap *, FILE *, FILE *, int, int, int, int, int);
+void set_sprite_origin(int, int);
+int generate_sprite(const Bitmap *, FILE *, FILE *, int, int, int, int);
+int generate_sprite_end(FILE *);
 
 #endif

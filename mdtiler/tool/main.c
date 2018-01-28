@@ -3,7 +3,7 @@
 // Program entry point, parses command line and runs stuff as required
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2016, 2017 Javier Degirolmo
+// Copyright 2011, 2012, 2016, 2017, 2018 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.52");
+      puts("1.60");
       return EXIT_SUCCESS;
    }
 
@@ -250,7 +250,11 @@ int main(int argc, char **argv) {
             errfile = infilename;
             break;
          case ERR_CANTWRITEMAP:
-            msg = "can't write to mappings file";
+            msg = "can't write to tilemap mappings file";
+            errfile = infilename;
+            break;
+         case ERR_CANTWRITESPR:
+            msg = "can't write to sprite mappings file";
             errfile = infilename;
             break;
          case ERR_MANYTILES:
