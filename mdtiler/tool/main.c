@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 
    // Show tool version?
    if (show_ver) {
-      puts("1.60");
+      puts("1.80");
       return EXIT_SUCCESS;
    }
 

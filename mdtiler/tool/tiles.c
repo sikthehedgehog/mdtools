@@ -3,7 +3,7 @@
 // Tile fetching stuff
 //***************************************************************************
 // mdtiler - Bitmap to tile conversion tool
-// Copyright 2011, 2012, 2015 Javier Degirolmo
+// Copyright 2011, 2012, 2015, 2018 Javier Degirolmo
 //
 // This file is part of mdtiler.
 //
@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include "main.h"
 #include "bitmap.h"
+#include "palette.h"
 #include "tiles.h"
 
 // Prototype for functions used to fetch tiles
@@ -57,7 +58,7 @@ void get_tile(const Bitmap *in, Tile *out, int bx, int by) {
       // Retrieve pixels of this row
       for (int x = 0; x < 8; x++) {
          uint8_t pixel = get_pixel(in, bx + x, by + y);
-         flags |= pixel >> 4 & 0x07;
+         flags |= (pixel >> 4) & 0x0F;
          pixel &= 0x0F;
          normal = normal << 4 | pixel;
          flipped = flipped >> 4 | pixel << 28;
@@ -69,7 +70,7 @@ void get_tile(const Bitmap *in, Tile *out, int bx, int by) {
    }
 
    // Store flags
-   out->flags = flags;
+   out->flags = get_palette_mapping(flags);
 }
 
 //***************************************************************************

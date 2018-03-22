@@ -30,6 +30,7 @@
 #include "bitmap.h"
 #include "offset.h"
 #include "map.h"
+#include "palette.h"
 #include "sprite.h"
 #include "tiles.h"
 
@@ -53,6 +54,7 @@ static void print_error_line(size_t, const char *);
 static int is_integer(const char *);
 static int is_color(const char *);
 static unsigned string_to_integer(const char *);
+static char *make_path(const char *, const char *);
 
 //***************************************************************************
 // build_batch
@@ -78,6 +80,14 @@ int build_batch(const char *infilename) {
    Bitmap *in = NULL;                  // Input bitmap
    FILE *out[2] = { NULL, NULL };      // Output blobs
    Layout layout = LAYOUT_TILEMAP;     // Tile ordering
+
+   // Default base directory
+   char *basedir = malloc(2);
+   if (basedir == NULL) {
+      fclose(file);
+      return ERR_NOMEMORY;
+   }
+   strcpy(basedir, ".");
 
    // Go through all lines
    for (size_t curr_line = 1; !feof(file); curr_line++) {
@@ -106,6 +116,7 @@ int build_batch(const char *infilename) {
          else {
             free(line);
             fclose(file);
+            free(basedir);
             return errcode;
          }
 
@@ -150,8 +161,13 @@ int build_batch(const char *infilename) {
                destroy_bitmap(in);
 
             // Attempt to load input bitmap
-            const char *filename = args.tokens[1];
+            char *filename = make_path(basedir, args.tokens[1]);
+            if (filename == NULL) {
+               errcode = ERR_NOMEMORY;
+               goto panic;
+            }
             in = load_bitmap(filename);
+            free(filename);
 
             // Oops?
             if (in == NULL) {
@@ -188,8 +204,13 @@ int build_batch(const char *infilename) {
                fclose(out[which]);
 
             // Attempt to open output file
-            const char *filename = args.tokens[1];
+            char *filename = make_path(basedir, args.tokens[1]);
+            if (filename == NULL) {
+               errcode = ERR_NOMEMORY;
+               goto panic;
+            }
             out[which] = fopen(filename, "wb");
+            free(filename);
 
             // Oops?
             if (out[which] == NULL) {
@@ -588,9 +609,68 @@ int build_batch(const char *infilename) {
          }
 
          // Change sprite origin
-         int x = string_to_integer(args.tokens[1]);
-         int y = string_to_integer(args.tokens[2]);
-         set_sprite_origin(x, y);
+         if (!failed) {
+            int x = string_to_integer(args.tokens[1]);
+            int y = string_to_integer(args.tokens[2]);
+            set_sprite_origin(x, y);
+         }
+      }
+
+      // Remap palettes?
+      else if (!strcmp(command, "remappal")) {
+         // group -> palette notation?
+         if (num_args == 4 && strcmp(args.tokens[2], "->") == 0) {
+            int group = string_to_integer(args.tokens[1]);
+            int palette = string_to_integer(args.tokens[3]);
+
+            if (group < 0 || group > 15) {
+               print_error_line(curr_line, infilename);
+               fputs("color group must be between 0 and 15\n", stderr);
+               failed = 1;
+            }
+            if (palette < 0 || palette > 7) {
+               print_error_line(curr_line, infilename);
+               fputs("palette must be between 0 and 7\n", stderr);
+               failed = 1;
+            }
+
+            remap_palette(group, palette);
+         }
+
+         // Other notations not implemented yet
+         else {
+           print_error_line(curr_line, infilename);
+           fputs("invalid arguments\n", stderr);
+           failed = 1;
+         }
+      }
+
+      // Change base directory?
+      else if (!strcmp(command, "basedir")) {
+         if (num_args != 2) {
+            // Determine error message
+            const char *msg;
+            switch (num_args) {
+               case 1: msg = "missing directory\n"; break;
+               default: msg = "too many parameters\n"; break;
+            }
+
+            // Show message on screen
+            print_error_line(curr_line, infilename);
+            fputs(msg, stderr);
+            failed = 1;
+         }
+
+         // Change base directory
+         if (!failed) {
+            free(basedir);
+            basedir = malloc(strlen(args.tokens[1]) + 1);
+            if (basedir == NULL) {
+               errcode = ERR_NOMEMORY;
+               goto panic;
+            }
+            strcpy(basedir, args.tokens[1]);
+         }
       }
 
       // Unknown command?
@@ -610,6 +690,7 @@ int build_batch(const char *infilename) {
    if (out[1]) fclose(out[1]);
 
    // We're done
+   free(basedir);
    fclose(file);
    return failed ? ERR_PARSE : ERR_NONE;
 
@@ -618,6 +699,7 @@ panic:
    if (in) destroy_bitmap(in);
    if (out[0]) fclose(out[0]);
    if (out[1]) fclose(out[1]);
+   free(basedir);
    fclose(file);
    return errcode;
 }
@@ -967,4 +1049,26 @@ static unsigned string_to_integer(const char *str) {
    else {
       return strtoul(str, NULL, 10);
    }
+}
+
+//***************************************************************************
+// make_path
+// Takes a base directory and a filename (which may itself contain
+// subdirectories) and returns a string with them combined (literally
+// "basedir/filename"). You must call free() once you're done with the
+// string.
+//---------------------------------------------------------------------------
+// param basedir: base directory
+// param filename: filename
+// return: pointer to string (NULL if failure)
+//***************************************************************************
+
+static char *make_path(const char *basedir, const char *filename)
+{
+   size_t len = strlen(basedir) + strlen(filename) + 2;
+   char *buffer = malloc(len);
+   if (buffer == NULL) return NULL;
+
+   sprintf(buffer, "%s/%s", basedir, filename);
+   return buffer;
 }
