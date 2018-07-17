@@ -19,8 +19,8 @@ Provided in this package:
    * Tool source code
    * EWF format documentation
 
-The source code for the tool is licensed under the GPL version 3 or later
-(see tool/LICENSE).
+The source code for the tool is licensed under the zlib license (see
+tool/LICENSE).
 
 -----------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ a PCM instrument in the format used by the Echo sound engine (usually ".ewf"
 extension). The raw PCM file should be unsigned 8-bit mono 16050 Hz.
 
 You can build this tool by using the makefile or just compiling together all
-the C files. This tool is licensed under the GPL version 3 or later.
+the C files. This tool is licensed under the zlib license.
 
 To convert a PCM file into EWF:
 
