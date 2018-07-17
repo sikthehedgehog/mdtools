@@ -20,8 +20,8 @@ Provided in this package:
    * TFI format documentation
    * EIF format documentation
 
-The source code for the tool is licensed under the GPL version 3 or later
-(see tool/LICENSE).
+The source code for the tool is licensed under the zlib license (see
+tool/LICENSE).
 
 -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ sound engine (".eif" extension) and turns it into a TFM Maker instrument
 with a wider range of tools.
 
 You can build this tool by using the makefile or just compiling together all
-the C files. This tool is licensed under the GPL version 3 or later.
+the C files. This tool is licensed under the zlib license.
 
 To convert a EIF file into TFI:
 
