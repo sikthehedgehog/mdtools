@@ -20,8 +20,8 @@ Provided in this package:
    * VGI format documentation
    * EIF format documentation
 
-The source code for the tool is licensed under the GPL version 3 or later
-(see tool/LICENSE).
+The source code for the tool is licensed under the zlib license (see
+tool/LICENSE).
 
 -----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ This is a command line tool. It takes an instrument generated in VGM Maker
 sound engine (usually ".eif" extension).
 
 You can build this tool by using the makefile or just compiling together all
-the C files. This tool is licensed under the GPL version 3 or later.
+the C files. This tool is licensed under the zlib license.
 
 To convert a VGI file into EIF:
 
