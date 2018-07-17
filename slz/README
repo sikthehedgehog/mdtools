@@ -21,10 +21,10 @@ Provided in this package:
    * 68k asm decompression source code for Mega Drive
    * C decompression source code for Mega Drive
 
-The source code for the tool is licensed under the GPL version 3 or later
-(see tool/LICENSE). The source code for use in Mega Drive is under a
-permissive license (do whatever you want with it as long as you don't claim
-it as your own - no explicit credit needed however).
+The source code for the tool is licensed under the zlib license. The source
+code for use in Mega Drive is under an even more permissive license (do
+whatever you want with it as long as you don't claim it as your own - no
+explicit credit needed however).
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -34,7 +34,7 @@ SLZ stands for "sleazy" and the name was suggested by both TµEE and AamirM.
 
 There's a command line tool that can be used to compress or decompress data.
 You can build this tool by using the makefile or just compiling together all
-the C files. This tool is licensed under the GPL version 3 or later.
+the C files. This tool is licensed under the zlib license.
 
 To compress a file:
 
