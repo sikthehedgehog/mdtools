@@ -4,7 +4,7 @@ LDFLAGS=-lpng16 -lz
 .PHONY: all
 all: mdtiler
 
-mdtiler: main.o tiles.o batch.o bitmap.o map.o sprite.o offset.o
+mdtiler: main.o tiles.o batch.o bitmap.o map.o sprite.o offset.o palette.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 main.o: main.c main.h tiles.h batch.h bitmap.h
