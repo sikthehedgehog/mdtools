@@ -5,7 +5,7 @@
 | | | | | | |_| | | | | | |___| |___| |\ \
 |_| |_| |_|____/  |_| |_|_____|_____|_| \_\
 
-mdtiler version 1.80
+mdtiler version 1.90
 ©2011, 2012, 2016, 2017, 2018 Sik
 
 mdtiler is a command line tool to convert images into tiles that can be used
@@ -118,6 +118,16 @@ The available commands are as follows (where «» specify parameters):
          12 -> 4     13 -> 5     14 -> 6     15 -> 7
       
       And yes, that's literally -> in the command.
+   
+   dumppal «filename»
+   
+      Saves the current palette into the specified file. The resulting file
+      is 32 bytes long, where each 16-bit value (big endian) is a color in
+      the same format as the VDP takes it.
+      
+      The palette dumped comes from whichever has been the last used 'input'
+      or 'palette' command (i.e. you can dump the palette of a PNG file or
+      a palette specified as a command).
    
    tiles «x» «y» «width» «height»
    
