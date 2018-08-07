@@ -167,7 +167,6 @@ int build_batch(const char *infilename) {
                goto panic;
             }
             in = load_bitmap(filename);
-            free(filename);
 
             // Oops?
             if (in == NULL) {
@@ -175,6 +174,8 @@ int build_batch(const char *infilename) {
                fprintf(stderr, "can't load input bitmap \"%s\"\n", filename);
                failed = 1;
             }
+
+            free(filename);
          }
       }
 
@@ -210,7 +211,6 @@ int build_batch(const char *infilename) {
                goto panic;
             }
             out[which] = fopen(filename, "wb");
-            free(filename);
 
             // Oops?
             if (out[which] == NULL) {
@@ -219,6 +219,8 @@ int build_batch(const char *infilename) {
                   filename);
                failed = 1;
             }
+
+            free(filename);
          }
       }
 
@@ -642,6 +644,54 @@ int build_batch(const char *infilename) {
            print_error_line(curr_line, infilename);
            fputs("invalid arguments\n", stderr);
            failed = 1;
+         }
+      }
+
+      // Dump bitmap palette?
+      else if (!strcmp(command, "dumppal")) {
+         // Check number of arguments
+         if (num_args != 2) {
+            // Determine error message
+            const char *msg = num_args == 1 ?
+               "palette filename not specified\n" :
+               "too many parameters\n";
+
+            // Show message on screen
+            print_error_line(curr_line, infilename);
+            fputs(msg, stderr);
+            failed = 1;
+         }
+
+         else {
+            // Attempt to open output file
+            char *filename = make_path(basedir, args.tokens[1]);
+            if (filename == NULL) {
+               errcode = ERR_NOMEMORY;
+               goto panic;
+            }
+
+            FILE *file = fopen(filename, "wb");
+            if (file == NULL) {
+               print_error_line(curr_line, infilename);
+               fprintf(stderr, "can't open output palette \"%s\"\n",
+                  filename);
+               failed = 1;
+            }
+
+            // Try to write it
+            int success = 1;
+            if (!failed) {
+               success = dump_bitmap_palette(file);
+               fclose(file);
+            }
+            if (!success) {
+               print_error_line(curr_line, infilename);
+               fprintf(stderr, "can't write output palette \"%s\"\n",
+                  filename);
+               failed = 1;
+            }
+
+            free(filename);
          }
       }
 

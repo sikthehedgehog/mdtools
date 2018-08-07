@@ -93,6 +93,36 @@ Bitmap *load_bitmap(const char *filename) {
    int32_t height = png_get_image_height(png_ptr, info_ptr);
    int type = png_get_color_type(png_ptr, info_ptr);
 
+   // Get palette, if any
+   if (type == PNG_COLOR_TYPE_PALETTE) {
+      // Read palette from PNG file
+      png_color *png_palette;
+      int num_colors;
+      png_get_PLTE(png_ptr, info_ptr, &png_palette, &num_colors);
+
+      // Get the colors into a neat array
+      int max_colors = 16;
+      if (max_colors > num_colors)
+         max_colors = num_colors;
+
+      uint16_t md_palette[16] = { 0 };
+      for (int i = 0; i < max_colors; i++) {
+         uint8_t r = png_palette[i].red >> 5;
+         uint8_t g = png_palette[i].green >> 5;
+         uint8_t b = png_palette[i].blue >> 5;
+         md_palette[i] = b << 9 | g << 5 | r << 1;
+      }
+
+      // Save the palette in case 'dumppal' gets used later
+      set_bitmap_palette(md_palette);
+   }
+
+   // Bitmap wasn't palette, load whatever was used with the 'palette' command
+   // (i.e. the palette the bitmap was converted with)
+   else {
+      set_fallback_palette();
+   }
+
    // Create structure to hold the bitmap object
    Bitmap *ptr = (Bitmap *) malloc(sizeof(Bitmap));
    if (ptr == NULL) {

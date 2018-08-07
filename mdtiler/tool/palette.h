@@ -24,13 +24,19 @@
 #ifndef PALETTE_H
 #define PALETTE_H
 
+#include <stdio.h>
+
 // Look-up table used to convert true color bitmaps into paletted ones
 // Contains which color to use for each BGR combination.
 #define PALTABLE_SIZE (0x20*0x20*0x20)
 extern uint8_t pal_table[PALTABLE_SIZE];
 
 // Function prototypes
+void set_palette(const uint16_t *);
 unsigned get_palette_mapping(unsigned);
 void remap_palette(unsigned, unsigned);
+void set_bitmap_palette(const uint16_t *);
+void set_fallback_palette(void);
+int dump_bitmap_palette(FILE *);
 
 #endif // PALETTE_H

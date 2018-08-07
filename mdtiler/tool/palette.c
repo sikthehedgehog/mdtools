@@ -24,7 +24,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "palette.h"
 
 // Look-up table used to convert true color bitmaps into paletted ones
@@ -38,6 +40,13 @@ static unsigned mappings[0x10] = {
     0, 1, 2, 3, 4, 5, 6, 7
 };
 
+// Array to hold the bitmap's original palette
+static uint16_t bitmap_pal[0x10] = { 0 };
+
+// Array to hold the palette specified using the "palette" command
+// This is used so we can dump it with "dumppal" if needed
+static uint16_t fallback_pal[0x10] = { 0 };
+
 //***************************************************************************
 // set_palette
 // Sets the palette to use to convert true color bitmaps into paletted ones.
@@ -48,6 +57,10 @@ static unsigned mappings[0x10] = {
 //***************************************************************************
 
 void set_palette(const uint16_t *colors) {
+   // Keep a copy of the palette so we can use it with dumppal
+   memcpy(fallback_pal, colors, sizeof(fallback_pal));
+   set_fallback_palette();
+
    // Go through the entire palette
    for (uint16_t i = 0; i < PALTABLE_SIZE; i++) {
       // Get BGR components for the color to check
@@ -108,4 +121,46 @@ unsigned get_palette_mapping(unsigned group) {
 
 void remap_palette(unsigned group, unsigned which) {
     mappings[group & 0x0F] = which & 0x07;
+}
+
+//***************************************************************************
+// set_bitmap_palette
+// Saves a copy of the bitmap's original palette
+//---------------------------------------------------------------------------
+// param colors: pointer to palette (16 entries, Mega Drive format)
+//***************************************************************************
+
+void set_bitmap_palette(const uint16_t *colors) {
+   memcpy(bitmap_pal, colors, sizeof(bitmap_pal));
+}
+
+//***************************************************************************
+// set_fallback_palette
+// Same as above but using whatever was loaded with the last "palette" command
+//***************************************************************************
+
+void set_fallback_palette(void) {
+   set_bitmap_palette(fallback_pal);
+}
+
+//***************************************************************************
+// dump_bitmap_palette
+// Dumps the bitmap's original palette into a file.
+//---------------------------------------------------------------------------
+// param file: pointer to file handle
+// return: non-zero on success, zero on failure
+//***************************************************************************
+
+int dump_bitmap_palette(FILE *file) {
+   // Reformat the bitmap into a way that doesn't rely on endianness
+   uint8_t blob[16*2];
+   uint8_t *ptr = blob;
+   for (int i = 0; i < 16; i++) {
+      uint16_t value = bitmap_pal[i];
+      *ptr++ = value >> 8;
+      *ptr++ = value;
+   }
+
+   // Try to write it into the file
+   return fwrite(blob, 1, 32, file) == 32;
 }
