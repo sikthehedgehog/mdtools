@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
 
    // Show version?
    if (show_version) {
-      puts("1.0");
+      puts("1.0a");
       return EXIT_SUCCESS;
    }
 
@@ -366,6 +366,7 @@ void pad_rom(Rom *rom, PadMode mode, const char *filename)
    }
 
    // Fill the padding
+   rom->size = new_size;
    for (size_t i = old_size; i < new_size; i++)
       rom->blob[i] = 0x00;
 
