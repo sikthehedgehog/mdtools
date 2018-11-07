@@ -1,0 +1,74 @@
+ ___ ___ _____ ____ _ _ _
+|   |   |     |  __| | | |
+| | | | | | | | |_ | | | |
+|  <| | | | | |  _|| |> <
+| | | | | | | | |  | | | |
+|_|_|___|_|_|_|_|  |_|_|_|
+
+Mega Drive ROM fixer utility
+© 2018 Javier Degirolmo
+Version 1.0
+
+This program is meant to be run after an assembler or compiler generates
+the ROM file. It does some additional maintenance job like padding the ROM
+or fixing some information in the ROM header. It's an useful addition to
+complement your current tools.
+
+This utility is released under the zlib license.
+
+;----------------------------------------------------------------------------
+
+The program is run as follows:
+
+   romfix «options» «filename.bin»
+
+Running the program as-is (even without options) will do the following:
+
+   * The checksum is calculated and fixed in the ROM header.
+   
+   * The ROM will be padded to the next size deemed "safe". This is useful
+     to avoid issues with some old emulators or flashcarts that could mistake
+     it for a .smd file in edge cases, or in case your assembler doesn't
+     align the ROM to a word size for whatever reason.
+
+;----------------------------------------------------------------------------
+
+On top of that, passing arguments to the command line (see «options») lets
+you do some additional operations on the ROM:
+
+   -t "GAME TITLE GOES HERE"
+   
+      Changes the game title in the ROM header (both domestic and overseas
+      fields). Title must be up to 48 characters long, will be padded with
+      spaces if it's shorter.
+   
+   -c "XYZW"
+   
+      Changes the four-letter copyright code in the ROM header. If the code
+      is shorter than four characters, it'll be padded with spaces.
+   
+   -d
+   
+      Changes the date in the copyright field to today.
+   
+   -s "BLAHBLAH"
+   
+      Changes the serial number. It must be up to 8 characters long, it will
+      be padded with spaces if shorter. Try to pick an unlikely serial number
+      (e.g. maybe your copyright code + a suffix? whatever works)
+   
+   -r 00
+   
+      Changes the revision number. It must be between 00 and 99. It
+      *must* be two digits (e.g. you can't do -r 1, instead do -r 01)
+   
+   -z
+   
+      Reports the size of the ROM before and after padding (to stderr).
+
+;----------------------------------------------------------------------------
+
+Also (without passing a ROM file):
+
+   romfix -h ... show usage
+   romfix -v ... show version

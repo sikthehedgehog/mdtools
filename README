@@ -14,26 +14,29 @@ build better quality homebrew as well as to provide a standard set of tools.
 
 Tools currently available:
 
-   * Programming tools
-      - headgen (generates Mega Drive headers)
-
    * Graphics tools
       - mdtiler (converts PNG files into Mega Drive tiles)
 
    * Sound tools
       - midi2esf (converts MIDI files into Echo streams - PRELIMINAR)
+      - mml2esf (converts MML files into Echo streams)
       - tfi2eif (converts TFM Maker instruments into Echo FM instruments)
       - vgi2eif (converts VGM Maker instruments into Echo FM instruments)
+      - eif2tfi (converts Echo FM instruments into TFM Maker instruments)
       - pcm2ewf (converts raw PCM data into Echo PCM instruments)
    
    * Compression
       - slz (general purpose compression)
       - uftc (fast graphics compression)
 
+   * Miscellaneous tools
+      - headgen (generates Mega Drive headers)
+      - romfix (post-build ROM fixups)
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Some other places you may want to check:
 
-   - http://echo.mdscene.net/ (Echo sound engine)
+   - https://github.com/sikthehedgehog/echo (Echo sound engine)
 
 -----------------------------------------------------------------------------
