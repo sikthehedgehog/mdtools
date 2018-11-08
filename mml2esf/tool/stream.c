@@ -83,6 +83,21 @@ void add_note_off(uint64_t timestamp, unsigned channel)
 }
 
 //***************************************************************************
+// add_set_note
+// Adds a set semitone event to the stream.
+//---------------------------------------------------------------------------
+// param timestamp: event timestamp
+// param channel: affected channel
+// param semitone: new semitone
+//***************************************************************************
+
+void add_set_note(uint64_t timestamp, unsigned channel,
+unsigned semitone)
+{
+   alloc_event(timestamp, channel, EV_SETNOTE, semitone);
+}
+
+//***************************************************************************
 // add_set_freq
 // Adds a set frequency event to the stream.
 //---------------------------------------------------------------------------

@@ -10,6 +10,7 @@ typedef enum {
    EV_NOP,                    // No-op, used to mess with timestamps
    EV_NOTEON,                 // Note on
    EV_NOTEOFF,                // Note off
+   EV_SETNOTE,                // Set semitone
    EV_SETFREQ,                // Set frequency
    EV_SETVOL,                 // Set volume
    EV_SETPAN,                 // Set panning
@@ -33,6 +34,7 @@ typedef struct {
 void add_nop(uint64_t);
 void add_note_on(uint64_t, unsigned, unsigned);
 void add_note_off(uint64_t, unsigned);
+void add_set_note(uint64_t, unsigned, unsigned);
 void add_set_freq(uint64_t, unsigned, unsigned, unsigned);
 void add_set_vol(uint64_t, unsigned, unsigned);
 void add_set_pan(uint64_t, unsigned, unsigned);

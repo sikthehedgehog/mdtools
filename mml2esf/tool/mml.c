@@ -651,16 +651,6 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          // If the note is meant to be a slide we need
          // to use raw frequency values instead
          int slide = chanstat[channel].slide;
-         int freq = 0;
-
-         if (slide) {
-            if (/*channel >= 0x00 &&*/ channel <= 0x07)
-               freq = fm_freq[semitone % 12];
-            else if (channel >= 0x08 && channel <= 0x0A)
-               freq = psg_freq[semitone % 12];
-            else
-               slide = 0;
-         }
 
          // Add event
          if (!chanstat[channel].nullify) {
@@ -669,8 +659,8 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
                channel != 0x0C ? (unsigned) semitone :
                chanstat[channel].instrument);
             } else {
-               add_set_freq(chanstat[channel].timestamp, channel,
-               freq, semitone / 12);
+               add_set_note(chanstat[channel].timestamp, channel,
+               semitone);
             }
          }
          chanstat[channel].timestamp += length;
@@ -726,26 +716,14 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
          // If the note is meant to be a slide we need
          // to use raw frequency values instead
          int slide = chanstat[channel].slide;
-         int freq = 0;
-
-         if (slide) {
-            if (/*channel >= 0x00 &&*/ channel <= 0x07)
-               freq = fm_freq[value % 12];
-            else if (channel >= 0x08 && channel <= 0x0A)
-               freq = psg_freq[value % 12];
-            else if (channel == 0x0B)
-               freq = value;
-            else
-               slide = 0;
-         }
 
          // Add event
          if (!chanstat[channel].nullify) {
-            if (!slide)
+            if (!slide) {
                add_note_on(chanstat[channel].timestamp, channel, value);
-            else
-               add_set_freq(chanstat[channel].timestamp, channel,
-               freq, value / 12);
+            } else {
+               add_set_note(chanstat[channel].timestamp, channel, value);
+            }
          }
          chanstat[channel].timestamp += length;
          chanstat[channel].nullify = 0;
@@ -834,7 +812,7 @@ static int parse_commands(const char *data, unsigned channel, unsigned line)
 
       // Set transpose?
       else if (*data == 'K' || *data == 'k') {
-         // Control channel shouldn't get octave commands...
+         // Control channel shouldn't get transpose commands...
          if (channel == 0x10) goto noctrl;
          int relative = (*data == 'k');
          data++;

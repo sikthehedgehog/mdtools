@@ -9,6 +9,7 @@ static int write_two(FILE *, uint8_t, uint8_t);
 static int write_three(FILE *, uint8_t, uint8_t, uint8_t);
 static int emit_note_on(FILE *, unsigned, unsigned);
 static int emit_note_off(FILE *, unsigned);
+static int emit_set_note(FILE *, unsigned, unsigned);
 static int emit_set_freq(FILE *, unsigned, unsigned);
 static int emit_set_volume(FILE *, unsigned, unsigned);
 static int emit_set_panning(FILE *, unsigned, unsigned);
@@ -48,6 +49,7 @@ int generate_esf(const char *filename)
    // Tempo used to modify the delta values
    // Measured in how many ticks a whole would last
    uint64_t tempo = 0x80;
+   uint64_t tempo_error = 0;
 
    // Scan every event
    size_t num_events = get_num_events();
@@ -63,7 +65,10 @@ int generate_esf(const char *filename)
       // Insert delays as needed
       // Note: handle edge cases?
       uint64_t delta = ev->timestamp - timestamp;
-      delta = delta * tempo / 0x80;
+      delta *= tempo;
+      tempo_error += delta % 0x80;
+      delta = (delta / 0x80) + (tempo_error / 0x80);
+      tempo_error %= 0x80;
 
       if (delta > 0 && delta <= 0x10) {
          if (write_one(file, 0xD0 + delta - 1)) goto error;
@@ -85,6 +90,9 @@ int generate_esf(const char *filename)
             break;
          case EV_NOTEOFF:
             if (emit_note_off(file, ev->channel)) goto error;
+            break;
+         case EV_SETNOTE:
+            if (emit_set_note(file, ev->channel, ev->value)) goto error;
             break;
          case EV_SETFREQ:
             if (emit_set_freq(file, ev->channel, ev->value)) goto error;
@@ -229,6 +237,29 @@ static int emit_note_off(FILE *file, unsigned channel)
 {
    // Emit byte
    return write_one(file, 0x10 | channel);
+}
+
+//***************************************************************************
+// emit_set_note [internal]
+// Generates a set semitone event on the ESF file.
+//---------------------------------------------------------------------------
+// param file: file handle
+// param channel: affected channel
+// param value: note to play
+// return: 0 on success, -1 on failure
+//***************************************************************************
+
+static int emit_set_note(FILE *file, unsigned channel, unsigned value)
+{
+   // Correct note value as needed by Echo
+   if (/*channel >= 0x00 &&*/ channel <= 0x07) {
+      unsigned octave = value / 12;
+      unsigned semitone = value % 12;
+      value = octave << 4 | semitone;
+   }
+
+   // Emit bytes
+   return write_two(file, 0x30 | channel, 0x80 | value);
 }
 
 //***************************************************************************
