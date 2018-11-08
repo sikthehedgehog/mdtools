@@ -1,5 +1,4 @@
-CFLAGS=-Wall -O3 -s -std=c99
-LDFLAGS=-lpng16 -lz
+CFLAGS:=$(CFLAGS) -Wall -O3 -s -std=c99
 
 .PHONY: all
 all: mml2esf
