@@ -17,7 +17,7 @@ DecompressSlz24:
     move.b  (a6)+, d7
     lsl.w   #8, d7
     move.b  (a6)+, d7
-    lsl.w   #8, d7
+    lsl.l   #8, d7
     move.b  (a6)+, d7
 
     moveq   #1, d6                  ; Cause code to fetch new token data
