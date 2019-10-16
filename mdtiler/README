@@ -108,7 +108,7 @@ The available commands are as follows (where «» specify parameters):
       palette. The upper four bits of the color index are used as the «group»
       (i.e. colors 0-15 are group 0, colors 16-31 are group 1, etc.). This
       command lets you decide how each group maps to each VDP palette
-      (palettes 0-3 for low priority, palettes 0-4 for high priority).
+      (palettes 0-3 for low priority, palettes 4-7 for high priority).
       
       The default mappings are
       
