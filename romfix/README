@@ -6,8 +6,8 @@
 |_|_|___|_|_|_|_|  |_|_|_|
 
 Mega Drive ROM fixer utility
-© 2018 Javier Degirolmo
-Version 1.0
+© 2018, 2020 Javier Degirolmo
+Version 1.1
 
 This program is meant to be run after an assembler or compiler generates
 the ROM file. It does some additional maintenance job like padding the ROM
@@ -30,6 +30,10 @@ Running the program as-is (even without options) will do the following:
      to avoid issues with some old emulators or flashcarts that could mistake
      it for a .smd file in edge cases, or in case your assembler doesn't
      align the ROM to a word size for whatever reason.
+   
+   * The ROM end address is patched to match the new size, accordingly. This
+     is important for games that compute the checksum (since they need to
+     know the range covered by the checksum).
 
 ;----------------------------------------------------------------------------
 

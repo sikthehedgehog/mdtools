@@ -1,4 +1,4 @@
-CFLAGS=-Wall -O3 -s
+CFLAGS:=$(CFLAGS) -Wall -O3 -s
 
 .PHONY: all
 all: uftc

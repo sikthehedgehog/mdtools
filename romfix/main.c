@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
 
    // Show version?
    if (show_version) {
-      puts("1.0a");
+      puts(VERSION);
       return EXIT_SUCCESS;
    }
 
@@ -369,6 +369,14 @@ void pad_rom(Rom *rom, PadMode mode, const char *filename)
    rom->size = new_size;
    for (size_t i = old_size; i < new_size; i++)
       rom->blob[i] = 0x00;
+
+   // Update ROM header end address
+   // (required for games that compute checksum)
+   uint32_t rom_end = new_size - 1;
+   rom->blob[HEADER_ROMEND+0] = rom_end >> 24;
+   rom->blob[HEADER_ROMEND+1] = rom_end >> 16;
+   rom->blob[HEADER_ROMEND+2] = rom_end >> 8;
+   rom->blob[HEADER_ROMEND+3] = rom_end;
 
    // Report size change?
    if (mode == PADDING_VERBOSE)

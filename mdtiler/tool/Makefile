@@ -1,5 +1,5 @@
-CFLAGS=-Wall -O3 -s -std=c99
-LDFLAGS=-lpng16 -lz
+CFLAGS:=$(CFLAGS) -Wall -O3 -s -std=c99
+LDFLAGS:=$(LDFLAGS) -lpng16 -lz
 
 .PHONY: all
 all: mdtiler

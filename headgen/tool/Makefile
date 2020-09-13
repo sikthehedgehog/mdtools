@@ -1,4 +1,4 @@
-CFLAGS=-Wall -O3 -s -std=c99
+CFLAGS:=$(CFLAGS) -Wall -O3 -s -std=c99
 
 .PHONY: all
 all: headgen

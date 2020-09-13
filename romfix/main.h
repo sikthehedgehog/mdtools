@@ -1,11 +1,14 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+// Program version (as reported by -v)
+#define VERSION "1.1"
+
 // Allowed ROM size limits
 #define MIN_ROM_SIZE 0x200
 #define MAX_ROM_SIZE 0x400000
 
-// Location of header fields
+// Location of relevant header fields
 #define HEADER_COPYRIGHT      0x113    // Copyright code
 #define HEADER_DATE           0x118    // Build date
 #define HEADER_TITLE1         0x120    // Domestic title
@@ -13,6 +16,10 @@
 #define HEADER_CHECKSUM       0x18E    // Checksum
 #define HEADER_SERIALNO       0x183    // Serial number
 #define HEADER_REVISION       0x18C    // Revision
+#define HEADER_ROMSTART       0x1A0    // ROM start address
+#define HEADER_ROMEND         0x1A4    // ROM end address
+#define HEADER_RAMSTART       0x1A8    // RAM start address
+#define HEADER_RAMEND         0x1AC    // RAM end address
 #define PROGRAM_START         0x200    // Where game code proper starts
 
 // Other limits
