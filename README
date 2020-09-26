@@ -24,6 +24,7 @@ Tools currently available:
       - vgi2eif (converts VGM Maker instruments into Echo FM instruments)
       - eif2tfi (converts Echo FM instruments into TFM Maker instruments)
       - pcm2ewf (converts raw PCM data into Echo PCM instruments)
+      - echo2vgm (converts Echo streams and instruments into VGM files)
    
    * Compression
       - slz (general purpose compression)
