@@ -10,67 +10,69 @@
 //***************************************************************************
 
 void decompress_slz(uint8_t *out, const uint8_t *in) {
-   // Retrieve uncompressed size
-   uint16_t size = in[0] << 8 | in[1];
-   in += 2;
-   
-   // To store the tokens
-   uint8_t num_tokens = 1;
-   uint8_t tokens;
-   
-   // Go through all compressed data until we're done decompressing
-   while (size != 0) {
-      // Need more tokens?
-      num_tokens--;
-      if (num_tokens == 0) {
-         tokens = *in++;
-         num_tokens = 8;
-      }
+   __asm__ __volatile__ (
+      "move.b (%0)+,%%d0\n\t"       // Read uncompressed size
+      "lsl.w #8,%%d0\n\t"
+      "move.b (%0)+,%%d0\n\t"
       
-      // Compressed string?
-      if (tokens & 0x80) {
-         // Get distance and length
-         uint16_t dist = in[0] << 8 | in[1];
-         uint8_t len = dist & 0x0F;
-         dist = dist >> 4;
-         in += 2;
-         
-         // Discount string length from size
-         size -= len + 3;
-         
-         // Copy string using Duff's device
-         // Code looks crazy, doesn't it? :)
-         uint8_t *ptr = out - dist - 3;
-         switch (len) {
-            case 15: *out++ = *ptr++;
-            case 14: *out++ = *ptr++;
-            case 13: *out++ = *ptr++;
-            case 12: *out++ = *ptr++;
-            case 11: *out++ = *ptr++;
-            case 10: *out++ = *ptr++;
-            case  9: *out++ = *ptr++;
-            case  8: *out++ = *ptr++;
-            case  7: *out++ = *ptr++;
-            case  6: *out++ = *ptr++;
-            case  5: *out++ = *ptr++;
-            case  4: *out++ = *ptr++;
-            case  3: *out++ = *ptr++;
-            case  2: *out++ = *ptr++;
-            case  1: *out++ = *ptr++;
-            case  0: *out++ = *ptr++;
-                     *out++ = *ptr++;
-                     *out++ = *ptr++;
-         }
-      }
+      "moveq #1,%%d1\n"             // Cause code to fetch new token data
+                                    // as soon as it starts
+   "1: tst.w %%d0\n\t"              // Did we read all data?
+      "beq 5f\n\t"                     // If so, we're done with it!
       
-      // Uncompressed byte?
-      else {
-         // Store byte as-is
-         *out++ = *in++;
-         size--;
-      }
+      "subq.w #1,%%d1\n\t"          // Check if we need more tokens
+      "bne.s 2f\n\t"
+      "move.b (%0)+,%%d2\n\t"
+      "moveq #8,%%d1\n"
       
-      // Go for next token
-      tokens += tokens;
-   }
+   "2: add.b %%d2,%%d2\n\t"         // Get next token type
+      "bcc.s 4f\n\t"                   // 0 = uncompressed, 1 = compressed
+      
+      "move.b (%0)+,%%d3\n\t"       // Compressed? Read string info
+      "lsl.w #8,%%d3\n\t"              // %d3 = distance
+      "move.b (%0)+,%%d3\n\t"          // %d4 = length
+      "move.b %%d3,%%d4\n\t"
+      "lsr.w #4,%%d3\n\t"
+      "and.w #15,%%d4\n\t"
+      
+      "subq.w #3,%%d0\n\t"          // Length is offset by 3
+      "sub.w %%d4,%%d0\n\t"         // Now that we know the string length,
+                                       // discount it from the amount of data
+                                       // to be read
+      
+      "addq.w #3,%%d3\n\t"          // Distance is offset by 3
+      "neg.w %%d3\n\t"              // Make distance go backwards
+      
+      "add.w %%d4,%%d4\n\t"         // Copy bytes using Duff's device
+      "add.w %%d4,%%d4\n\t"            // MUCH faster than a loop, due to lack
+      "eor.w #60,%%d4\n\t"             // of iteration overhead
+      "jmp 3f(%%pc,%%d4.w)\n"
+   "3: move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      "move.b (%1,%%d3.w),(%1)+\n\t"
+      
+      "bra 1b\n"                    // Keep processing data
+      
+   "4: move.b (%0)+,(%1)+\n\t"      // Uncompressed? Read as is
+      "subq.w #1,%%d0\n\t"          // It's always one byte long
+      "bra 1b\n"                    // Keep processing data
+      
+   "5:"
+      : "=a"(in),"=a"(out) : "0"(in),"1"(out) :
+      "d0","d1","d2","d3","d4","memory","cc");
 }
