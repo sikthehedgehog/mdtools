@@ -10,8 +10,9 @@
 // Function prototypes
 int load_rom(const char *, Rom *);
 int save_rom(const char *, const Rom *);
-void pad_rom(Rom *, PadMode, const char *);
+void pad_rom(Rom *);
 void compute_checksum(Rom *);
+void fill_in_mirroring(Rom *);
 void fix_build_date(Rom *);
 int change_title(const char *, Rom *, const char *);
 int change_copyright(const char *, Rom *, const char *);
@@ -34,6 +35,7 @@ int main(int argc, char **argv) {
    const char *serial = NULL;
    const char *revision = NULL;
    int update_date = 0;
+   int pad_to_4mb = 0;
    PadMode pad = PADDING_QUIET;
 
    // Scan every argument
@@ -142,6 +144,12 @@ int main(int argc, char **argv) {
          strcmp(argv[i], "--date") == 0) {
             update_date = 1;
          }
+         
+         // Pad all the way to 4MB?
+         else if (strcmp(argv[i], "-4") == 0 ||
+         strcmp(argv[i], "--4mb") == 0) {
+            pad_to_4mb = 1;
+         }
 
          // Verbose padding?
          else if (strcmp(argv[i], "-z") == 0 ||
@@ -180,6 +188,7 @@ int main(int argc, char **argv) {
            "-s <serial> ..... set serial number\n"
            "-r <revision> ... set revision (00 to 99)\n"
            "-d .............. set build date to today\n"
+           "-4 .............. pad all the way to 4MB\n"
            "-z .............. report ROM size before and after padding\n"
            "-h .............. show help\n"
            "-v .............. show version\n");
@@ -204,10 +213,24 @@ int main(int argc, char **argv) {
    if (load_rom(filename, &rom)) {
       return EXIT_FAILURE;
    }
+   
+   // Get original ROM size in case we need to report it later
+   size_t old_size = rom.size;
 
    // Do maintenance
-   pad_rom(&rom, pad, filename);
+   pad_rom(&rom);
    compute_checksum(&rom);
+   size_t new_size = rom.size;
+   if (pad_to_4mb) {
+      fill_in_mirroring(&rom);
+   }
+   
+   // Report new ROM size?
+   if (pad == PADDING_VERBOSE) {
+      fprintf(stderr, "[%s] old size: %zu bytes, new size: %zu bytes%s\n",
+              filename, old_size, new_size,
+              pad_to_4mb ? " (mirrored to 4MB)" : "");
+   }
 
    // Change title?
    if (title != NULL)
@@ -341,11 +364,9 @@ int save_rom(const char *filename, const Rom *rom)
 // Pads the ROM to the next size we consider safe.
 //----------------------------------------------------------------------------
 // param rom: pointer to ROM data
-// param mode: how to do the padding
-// param filename: ROM filename (for reporting)
 //****************************************************************************
 
-void pad_rom(Rom *rom, PadMode mode, const char *filename)
+void pad_rom(Rom *rom)
 {
    // Keep track of old size for reporting later
    size_t old_size = rom->size;
@@ -377,11 +398,6 @@ void pad_rom(Rom *rom, PadMode mode, const char *filename)
    rom->blob[HEADER_ROMEND+1] = rom_end >> 16;
    rom->blob[HEADER_ROMEND+2] = rom_end >> 8;
    rom->blob[HEADER_ROMEND+3] = rom_end;
-
-   // Report size change?
-   if (mode == PADDING_VERBOSE)
-      fprintf(stderr, "[%s] old size: %zu bytes, new size: %zu bytes\n",
-              filename, old_size, new_size);
 }
 
 //****************************************************************************
@@ -412,6 +428,44 @@ void compute_checksum(Rom *rom)
 }
 
 //****************************************************************************
+// fill_in_mirroring
+// Pads the ROM to 4MB, faking mirroring as if the actual chip was smaller.
+//----------------------------------------------------------------------------
+// param rom: pointer to ROM data
+//----------------------------------------------------------------------------
+// notes: the code is making the assumption that romfix's "pad to safe size"
+// feature is done first, which guarantees that the ROM size is either a power
+// of two or a sum of two powers of two (specifically n, n+(n/2) or n+(n/4)),
+// the check in the first loop needs be adjusted if this assumption does not
+// apply anymore.
+//****************************************************************************
+
+void fill_in_mirroring(Rom *rom)
+{
+   // First we need to pad the ROM to the next power of two
+   for (;;) {
+      size_t mirror_start = rom->size & (rom->size - 1);
+      if (mirror_start == 0) break;
+      size_t mirror_len = rom->size - mirror_start;
+      
+      uint8_t *src = &rom->blob[mirror_start];
+      uint8_t *dest = src + mirror_len;
+      memcpy(dest, src, mirror_len);
+      
+      rom->size += mirror_len;
+   }
+   
+   // Now pad to 4MB
+   while (rom->size < 0x400000) {
+      uint8_t *src = rom->blob;
+      uint8_t *dest = src + rom->size;
+      memcpy(dest, src, rom->size);
+      
+      rom->size <<= 1;
+   }
+}
+
+//****************************************************************************
 // fix_build_date
 // Changes the ROM build date to today.
 //----------------------------------------------------------------------------
@@ -428,12 +482,40 @@ void fix_build_date(Rom *rom)
    // Get current time
    time_t sec_now = time(NULL);
    struct tm *tm_now = localtime(&sec_now);
+   
+   // Make sure time is valid JUST in case
+   // I think only the very first one can realistically happen (and even then
+   // you have bigger problems to worry about if that's the case) but adding
+   // everything just in case because otherwise GCC complains that the snprintf
+   // below will be truncated
+   // If you're still running this code past year 9999 I'll be impressed that
+   // the ROM header format remained relevant for so long
+   if (tm_now == NULL) {
+      goto error;
+   }
+   if (tm_now->tm_year <= -1900) {
+      goto error;
+   }
+   if (tm_now->tm_year >= -1900 + 9999) {
+      goto error;
+   }
+   if (tm_now->tm_mon < 0) {
+      goto error;
+   }
+   if (tm_now->tm_mon > 11) {
+      goto error;
+   }
 
    // Generate the string
    char buffer[DATE_LEN+1];
    snprintf(buffer, sizeof(buffer), "%04d.%s",
       tm_now->tm_year+1900, months[tm_now->tm_mon]);
    memcpy(&rom->blob[HEADER_DATE], buffer, DATE_LEN);
+   return;
+   
+error:
+   memcpy(&rom->blob[HEADER_DATE], "????.???", DATE_LEN);
+   return;
 }
 
 //****************************************************************************

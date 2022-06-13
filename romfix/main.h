@@ -2,7 +2,7 @@
 #define MAIN_H
 
 // Program version (as reported by -v)
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 // Allowed ROM size limits
 #define MIN_ROM_SIZE 0x200

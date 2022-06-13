@@ -6,8 +6,8 @@
 |_|_|___|_|_|_|_|  |_|_|_|
 
 Mega Drive ROM fixer utility
-© 2018, 2020 Javier Degirolmo
-Version 1.1
+© 2018, 2020, 2022 Javier Degirolmo
+Version 1.2
 
 This program is meant to be run after an assembler or compiler generates
 the ROM file. It does some additional maintenance job like padding the ROM
@@ -69,6 +69,20 @@ you do some additional operations on the ROM:
    -z
    
       Reports the size of the ROM before and after padding (to stderr).
+   
+   -4
+   
+      *After* romfix does its padding to a safe size, it'll mirror the result
+      to fill up to 4MB (the same way a dumper would see a smaller ROM if it
+      tried to overdump). This is useful in case you're worried about a Flash
+      programmer misbehaving when trying to write a small game into a 4MB
+      board (the most common size).
+      
+      Since this is done after the initial padding, the ROM header (including
+      the checksum) will still reflect the unmirrored size. As far as the
+      software is aware, it's running on a board with a smaller ROM size
+      (exception: if you also have SRAM you will still need to do the bank
+      switching as for larger ROMs)
 
 ;----------------------------------------------------------------------------
 
